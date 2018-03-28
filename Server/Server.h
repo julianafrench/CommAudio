@@ -8,25 +8,23 @@
 #include <stdio.h>
 #include <string>
 #include <iostream>
-#include <vector>
 
-#define PORT 7000
-#define DATA_BUFSIZE 8192
+#define DEF_PORT 7000
 
 namespace commaudio
 {
-	typedef struct _SOCKET_INFORMATION {
-		OVERLAPPED Overlapped;
-		SOCKET Socket;
-		CHAR Buffer[DATA_BUFSIZE];
-		WSABUF DataBuf;
-		DWORD BytesSEND;
-		DWORD BytesRECV;
-	} SOCKET_INFORMATION, *LPSOCKET_INFORMATION;
+	class Server
+	{
+	public:
+		Server() = delete;
+		static void SvrConnect();
+		static DWORD WINAPI SvrRecvThread(LPVOID lpParameter);
+		static bool SendPlaylist(struct SOCKET_INFORMATION *SI);
+		static void CALLBACK WorkerRoutine(DWORD Error, DWORD BytesTransferred,
+			LPWSAOVERLAPPED Overlapped, DWORD InFlags);
 
-	void SvrConnect();
-	void CALLBACK WorkerRoutine(DWORD Error, DWORD BytesTransferred,
-		LPWSAOVERLAPPED Overlapped, DWORD InFlags);
-	DWORD WINAPI SvrRecvThread(LPVOID lpParameter);
-	bool SendPlaylist(LPSOCKET_INFORMATION SI);
+		static void CreateSocketInfo(SOCKET *s);
+		static struct SOCKET_INFORMATION * GetSocketInfo(SOCKET *s);
+		static void FreeSocketInfo(SOCKET *s);
+	};	
 }

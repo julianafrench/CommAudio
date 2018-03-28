@@ -1,8 +1,10 @@
 #include "Server.h"
+#include "SocketStruct.h"
 
 namespace commaudio
 {
 	// variables
+	SOCKET_INFORMATION * svrSocketInfo;
 	WSADATA wsaData;
 	SOCKET ListenSocket;
 	SOCKADDR_IN InternetAddr;
@@ -12,9 +14,9 @@ namespace commaudio
 	WSAEVENT AcceptEvent;
 	SOCKET AcceptSocket;
 
-	std::string songlist;
+	std::string svrSonglist;
 
-	void SvrConnect()
+	void Server::SvrConnect()
 	{
 		if ((Ret = WSAStartup(0x0202, &wsaData)) != 0)
 		{
@@ -32,7 +34,7 @@ namespace commaudio
 
 		InternetAddr.sin_family = AF_INET;
 		InternetAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-		InternetAddr.sin_port = htons(PORT);
+		InternetAddr.sin_port = htons(DEF_PORT);
 
 		if (bind(ListenSocket, (PSOCKADDR)&InternetAddr,
 			sizeof(InternetAddr)) == SOCKET_ERROR)
@@ -72,10 +74,9 @@ namespace commaudio
 		}
 	}
 
-	DWORD WINAPI SvrRecvThread(LPVOID lpParameter)
+	DWORD WINAPI Server::SvrRecvThread(LPVOID lpParameter)
 	{
 		DWORD Flags;
-		LPSOCKET_INFORMATION SocketInfo;
 		WSAEVENT EventArray[1];
 		DWORD Index;
 		DWORD RecvBytes;
@@ -107,27 +108,14 @@ namespace commaudio
 
 			// Create a socket information structure to associate with the accepted socket.
 			// note: this is not necessary in this case
-			if ((SocketInfo = (LPSOCKET_INFORMATION)GlobalAlloc(GPTR,
-				sizeof(SOCKET_INFORMATION))) == NULL)
-			{
-				printf("GlobalAlloc() failed with error %d\n", GetLastError());
-				return FALSE;
-			}
-
-			// Fill in the details of our accepted socket.
-			SocketInfo->Socket = AcceptSocket;
-			ZeroMemory(&(SocketInfo->Overlapped), sizeof(WSAOVERLAPPED));
-			SocketInfo->BytesSEND = 0;
-			SocketInfo->BytesRECV = 0;
-			SocketInfo->DataBuf.len = DATA_BUFSIZE;
-			SocketInfo->DataBuf.buf = SocketInfo->Buffer;
+			CreateSocketInfo(&AcceptSocket);
 
 			// If file mode is selected...
-			SendPlaylist(SocketInfo);
+			SendPlaylist(svrSocketInfo);
 
 			Flags = 0;
-			if (WSARecv(SocketInfo->Socket, &(SocketInfo->DataBuf), 1, &RecvBytes, &Flags,
-				&(SocketInfo->Overlapped), WorkerRoutine) == SOCKET_ERROR)
+			if (WSARecv(svrSocketInfo->Socket, &(svrSocketInfo->DataBuf), 1, &RecvBytes, &Flags,
+				&(svrSocketInfo->Overlapped), WorkerRoutine) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING)
 				{
@@ -142,9 +130,9 @@ namespace commaudio
 		return TRUE;
 	}
 
-	bool SendPlaylist(LPSOCKET_INFORMATION SI)
+	bool Server::SendPlaylist(SOCKET_INFORMATION *SI)
 	{
-		songlist = "";
+		svrSonglist = "";
 		char buff[BUFSIZ];
 		GetCurrentDirectory(BUFSIZ, buff);
 		std::string dir(buff);
@@ -155,13 +143,20 @@ namespace commaudio
 		{
 			do
 			{
-				songlist += data.cFileName;
-				songlist += ";";
+				svrSonglist += data.cFileName;
+				svrSonglist += ";";
 			} while (FindNextFile(hFind, &data) != 0);
 			FindClose(hFind);
 		}
+		else
+		{
+			std::cout << "no audio files are in current directory!" << std::endl;
+			return false;
+		}
 		memset(buff, 0, BUFSIZ);
-		strcpy_s(buff, BUFSIZ, songlist.c_str());
+		strcpy_s(buff, BUFSIZ, svrSonglist.c_str());
+
+		std::cout << "Sending song list: " << svrSonglist << std::endl;
 
 		if (send(SI->Socket, buff, BUFSIZ, 0) <= 0)
 		{
@@ -173,14 +168,14 @@ namespace commaudio
 	}
 
 
-	void CALLBACK WorkerRoutine(DWORD Error, DWORD BytesTransferred,
+	void CALLBACK Server::WorkerRoutine(DWORD Error, DWORD BytesTransferred,
 		LPWSAOVERLAPPED Overlapped, DWORD InFlags)
 	{
 		DWORD SendBytes, RecvBytes;
 		DWORD Flags;
 
 		// Reference the WSAOVERLAPPED structure as a SOCKET_INFORMATION structure
-		LPSOCKET_INFORMATION SI = (LPSOCKET_INFORMATION)Overlapped;
+		SOCKET_INFORMATION *SI = (SOCKET_INFORMATION *)Overlapped;
 
 		if (Error != 0)
 		{
@@ -246,7 +241,7 @@ namespace commaudio
 			Flags = 0;
 			ZeroMemory(&(SI->Overlapped), sizeof(WSAOVERLAPPED));
 
-			SI->DataBuf.len = DATA_BUFSIZE;
+			SI->DataBuf.len = BUFSIZ;
 			SI->DataBuf.buf = SI->Buffer;
 
 			if (WSARecv(SI->Socket, &(SI->DataBuf), 1, &RecvBytes, &Flags,
@@ -259,5 +254,103 @@ namespace commaudio
 				}
 			}
 		}
+	}
+
+	/*----------------------------------------------------------------------
+	-- FUNCTION:	CreateSocketInfo
+	--
+	-- DATE:		February 14, 2018
+	--
+	-- DESIGNER:	Luke Lee
+	--
+	-- PROGRAMMER:	Luke Lee
+	--
+	-- INTERFACE:	void CreateSocketInfo(SOCEKT *s)
+	--
+	-- ARGUMENT:	*s				- pointer to a socket
+	--
+	-- RETURNS:		void
+	--
+	-- NOTES:
+	-- This function creates a Socket Info struct corresponding to *s.
+	----------------------------------------------------------------------*/
+	void Server::CreateSocketInfo(SOCKET *s)
+	{
+		SOCKET_INFORMATION *SI;
+		char mStr[BUFSIZ];
+
+		if ((SI = (SOCKET_INFORMATION *)malloc(sizeof(SOCKET_INFORMATION))) == NULL)
+		{
+			sprintf_s(mStr, "GlobalAlloc() failed with error %d\n", GetLastError());
+			//MessageBox(*hwnd, mStr, "Error", MB_OK);
+			return;
+		}
+
+		// Prepare SocketInfo structure for use.
+		SI->Socket = *s;
+		ZeroMemory(&(SI->Overlapped), sizeof(WSAOVERLAPPED));
+		SI->BytesSEND = 0;
+		SI->BytesRECV = 0;
+		SI->DataBuf.len = BUFSIZ;
+		SI->DataBuf.buf = SI->Buffer;
+
+		svrSocketInfo = SI;
+	}
+
+	/*----------------------------------------------------------------------
+	-- FUNCTION:	GetSocketInfo
+	--
+	-- DATE:		February 14, 2018
+	--
+	-- DESIGNER:	Luke Lee
+	--
+	-- PROGRAMMER:	Luke Lee
+	--
+	-- INTERFACE:	void GetSocketInfo(SOCEKT *s)
+	--
+	-- ARGUMENT:	*s				- pointer to a socket
+	--
+	-- RETURNS:		LPSOCKET_INFORMATION
+	--
+	-- NOTES:
+	-- This function gets and returns the Socket Info struct corresponding
+	-- to *s.
+	----------------------------------------------------------------------*/
+	SOCKET_INFORMATION * Server::GetSocketInfo(SOCKET *s)
+	{
+		if (svrSocketInfo->Socket == *s)
+		{
+			return svrSocketInfo;
+		}
+		return nullptr;
+	}
+
+	/*----------------------------------------------------------------------
+	-- FUNCTION:	FreeSocketInfo
+	--
+	-- DATE:		February 14, 2018
+	--
+	-- DESIGNER:	Luke Lee
+	--
+	-- PROGRAMMER:	Luke Lee
+	--
+	-- INTERFACE:	void FreeSocketInfo(SOCEKT *s)
+	--
+	-- ARGUMENT:	*s				- pointer to a socket
+	--
+	-- RETURNS:		LPSOCKET_INFORMATION
+	--
+	-- NOTES:
+	-- This function takes in a pointer to a socket and free up the memory
+	-- for the Socket Info struct associated with that socket.
+	----------------------------------------------------------------------*/
+	void Server::FreeSocketInfo(SOCKET *s)
+	{
+		closesocket(*s);
+		if (svrSocketInfo != nullptr)
+		{
+			free(svrSocketInfo);
+		}
+		WSACleanup();
 	}
 }
