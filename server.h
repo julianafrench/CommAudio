@@ -11,8 +11,10 @@
 #include <stdio.h>
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <QString>
 #include <QDir>
+#include <QDebug>
 
 #define DEF_PORT 7000
 
@@ -23,24 +25,28 @@ namespace commaudio
         //HWND *hwnd;
         int port = DEF_PORT;
         std::string songlist;
-        char *sendBuffer;
+        //char sendBuffer[DATA_BUFSIZE];
         //int packetSize = DEF_P_SIZE;
         bool fileMode = true;
         bool *connected;
         SOCKET *recvSocket;
+        std::ifstream fileRead;
+        std::streamsize fileSize;
     };
 
     class Server
     {
     public:
         Server() = delete;
-        static void SvrConnect(ServerInfo *svrInfo);
-        static DWORD WINAPI SvrRecvThread(LPVOID lpParameter);
+        static bool SvrConnect(ServerInfo *svrInfo);
+        static void AcceptNewEvent();
+        static DWORD WINAPI ListenThread(LPVOID lpParameter);
         static bool SendPlaylist(struct SOCKET_INFORMATION *SI, std::string songlist);
-        static void CALLBACK WorkerRoutine(DWORD Error, DWORD BytesTransferred,
+        static bool ValidateFilename(std::string filepath);
+        static void CALLBACK SendFileRoutine(DWORD Error, DWORD BytesTransferred,
             LPWSAOVERLAPPED Overlapped, DWORD InFlags);
 
-        static void CreateSocketInfo(SOCKET *s);
+        static struct SOCKET_INFORMATION * CreateSocketInfo(SOCKET *s);
         static struct SOCKET_INFORMATION * GetSocketInfo(SOCKET *s);
         static void FreeSocketInfo(SOCKET *s);
     };

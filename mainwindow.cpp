@@ -5,9 +5,13 @@
 
 using namespace commaudio;
 
+// Function declarations (not in mainwindow.h)
+DWORD WINAPI serverThread(LPVOID svrInfo);
+
 // Global variables
 ServerInfo *svrInfo;
 ClientInfo *clntInfo;
+bool connected = false;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -18,10 +22,19 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // connect menu items to actions
     //connect(ui->actionServer, &QAction::triggered, this, &MainWindow::on_actionServer_triggered);
+    //connect(ui->saveBtn, &QPushButton::clicked, this, &MainWindow::on_actionServer_triggered);
 }
 
 MainWindow::~MainWindow()
 {
+    if (svrInfo != nullptr)
+    {
+        free(svrInfo);
+    }
+    if (clntInfo != nullptr)
+    {
+        free(clntInfo);
+    }
     delete ui;
 }
 
@@ -50,9 +63,7 @@ QString MainWindow::loadPlaylist()
 void MainWindow::on_actionServer_triggered()
 {
     hostType = SERVER;
-    playlist = loadPlaylist();
     svrInfo = new ServerInfo();
-    svrInfo->songlist = playlist.toStdString();
 }
 
 void MainWindow::on_actionClient_triggered()
@@ -64,16 +75,73 @@ void MainWindow::on_actionClient_triggered()
 
 void MainWindow::on_actionConnect_triggered()
 {
-    if (hostType = SERVER)
+    if (hostType == SERVER)
     {
-        Server::SvrConnect(svrInfo);
-    }
-    else if (hostType = CLIENT)
-    {
-        Client::ClntConnect(clntInfo);
-        playlist = QString::fromStdString(clntInfo->songlist);
+        playlist = loadPlaylist();
+        svrInfo->songlist = playlist.toStdString();
 
-        ui->listWidget->addItems(playlist.split(";"));
-        ui->listWidget->setCurrentRow(0);
+        // create server thread
+        DWORD svrThrdID;
+        if (CreateThread(NULL, 0, serverThread, (LPVOID)svrInfo, 0, &svrThrdID) == NULL)
+        {
+            qWarning() << "failed to create server thread";
+        }
+    }
+    else if (hostType == CLIENT)
+    {
+        if(Client::ClntConnect(clntInfo))
+        {
+            connected = true;
+            clntInfo->connected = &connected;
+            //qDebug("Clnt with socket " + clntInfo->sendSocket + " connected");
+            Client::ReceivePlaylist();
+            playlist = QString::fromStdString(clntInfo->songlist);
+
+            if (playlist != "")
+            {
+                ui->listWidget->addItems(playlist.split(";"));
+                ui->listWidget->setCurrentRow(0);
+            }
+            else
+            {
+                // warning dialog for no audio files found
+            }
+        }
+    }
+}
+
+
+DWORD WINAPI serverThread(LPVOID svrInfo)
+{
+    ServerInfo *sInfo = (ServerInfo *)svrInfo;
+    connected = Server::SvrConnect(sInfo);
+    qDebug() << "server connected";
+    sInfo->connected = &connected;
+    while (connected)
+    {
+        Server::AcceptNewEvent();
+    }
+    return TRUE;
+}
+
+QString MainWindow::getSelectedFile()
+{
+    if(ui->listWidget->count() != 0)
+    {
+        return ui->listWidget->currentItem()->text();
+        //qDebug("selected: " + filename);
+    }
+    return "";
+}
+
+void MainWindow::on_saveBtn_clicked()
+{
+    if (hostType == CLIENT)
+    {
+        QString filename = getSelectedFile();
+        if(Client::SendFilename(filename.toStdString()))
+        {
+            Client::ReceiveFileSetup();
+        }
     }
 }

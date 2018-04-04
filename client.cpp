@@ -7,8 +7,11 @@ namespace commaudio
     ClientInfo *cInfo;
     HWND *hwnd;
     struct sockaddr_in server;
+    bool file_recv_complete = false;
 
     SOCKET sdSocket;
+
+    FILE *fileWrite;
 
     bool Client::ClntConnect(ClientInfo *clntInfo)
     {
@@ -19,7 +22,7 @@ namespace commaudio
         char mStr[BUFSIZ];
 
         cInfo = clntInfo;
-        hwnd = cInfo->hwnd;
+        //hwnd = cInfo->hwnd;
 
         const char* host = cInfo->server_input.c_str();
 
@@ -90,21 +93,21 @@ namespace commaudio
             fprintf(stdout, "\t\tIP Address: %s\n", inet_ntoa(server.sin_addr));
             //return true;
         }
-        CreateSocketInfo(&sdSocket);
+        clntSocketInfo = CreateSocketInfo(&sdSocket);
 
-        if (cInfo->fileMode)
-        {
-            if(ReceivePlaylist())
-            {
+        //if (cInfo->fileMode)
+        //{
+        //    if(ReceivePlaylist())
+        //    {
                 // update songlist on UI
-                std::cout << "Song List: " << cInfo->songlist << std::endl;
-            }
-        }
+        //        std::cout << "Song List: " << cInfo->songlist << std::endl;
+        //    }
+        //}
 
         return true;
     }
 
-    bool Client::ReceivePlaylist()
+    void Client::ReceivePlaylist()
     {
         DWORD flags;
         DWORD recvBytes;
@@ -116,13 +119,208 @@ namespace commaudio
             if (WSAGetLastError() != WSA_IO_PENDING)
             {
                 printf("WSARecv() failed with error %d\n", WSAGetLastError());
-                return false;
+                return;
             }
         }
 
         cInfo->songlist += clntSocketInfo->DataBuf.buf;
+    }
+
+    bool Client::SendFilename(std::string filename)
+    {
+        cInfo->selFilename = filename;
+        int sentBytes;
+        char buff[BUFSIZ];
+        memset(buff, 0, BUFSIZ);
+        strcpy_s(buff, BUFSIZ, filename.c_str());
+
+        if (sentBytes = send(clntSocketInfo->Socket, buff, BUFSIZ, 0) <= 0)
+        {
+            // error message
+            qDebug() << "SendFilename failed";
+            return false;
+        }
+
         return true;
     }
+
+    void Client::ReceiveFileSetup()
+    {
+        WSAEVENT RecvEvent;
+        HANDLE ClntRecvThrdHwnd;
+        DWORD ClntThrdId;
+
+        if ((RecvEvent = WSACreateEvent()) == WSA_INVALID_EVENT)
+        {
+            printf("WSACreateEvent() failed with error %d\n", WSAGetLastError());
+            return;
+        }
+
+        // Create a recv thread to start receiving file contents from server.
+        if ((ClntRecvThrdHwnd = CreateThread(NULL, 0, ClntRecvThread, (LPVOID)RecvEvent, 0, &ClntThrdId)) == NULL)
+        {
+            //printf("CreateThread failed with error %d\n", GetLastError());
+            return;
+        }
+    }
+
+    DWORD WINAPI Client::ClntRecvThread(LPVOID lpParameter)
+    {
+        DWORD Flags;
+        WSAEVENT EventArray[1];
+        DWORD Index;
+        DWORD RecvBytes;
+
+        Flags = 0;
+        if (WSARecv(clntSocketInfo->Socket, &(clntSocketInfo->DataBuf), 1, &RecvBytes, &Flags,
+            &(clntSocketInfo->Overlapped), RecvFileRoutine) == SOCKET_ERROR)
+        {
+            if (WSAGetLastError() != WSA_IO_PENDING)
+            {
+                printf("WSARecv() failed with error %d\n", WSAGetLastError());
+                return FALSE;
+            }
+        }
+
+        // Save the recv event in the event array.
+        EventArray[0] = (WSAEVENT)lpParameter;
+
+        while (TRUE)
+        {
+            // Wait for accept() to signal an event and also process SendFileRoutine() returns.
+            while (TRUE)
+            {
+                Index = WSAWaitForMultipleEvents(1, EventArray, FALSE, WSA_INFINITE, TRUE);
+
+                if (Index == WAIT_IO_COMPLETION)
+                {
+                    // An overlapped request completion routine just completed. Continue servicing more completion routines.
+                    continue;
+                }
+                else
+                {
+                    printf("WSAWaitForMultipleEvents failed with error %d\n", WSAGetLastError());
+                    return FALSE;
+                }
+            }
+        }
+
+        return TRUE;
+    }
+
+    void CALLBACK Client::RecvFileRoutine(DWORD Error, DWORD BytesTransferred,
+                LPWSAOVERLAPPED Overlapped, DWORD InFlags)
+    {
+        DWORD RecvBytes;
+        DWORD Flags;
+
+        // Reference the WSAOVERLAPPED structure as a SOCKET_INFORMATION structure
+        SOCKET_INFORMATION *SI = (SOCKET_INFORMATION *)Overlapped;
+
+        if (Error != 0)
+        {
+            //printf("I/O operation failed with error %d\n", Error);
+            FreeSocketInfo(&SI->Socket);
+            return;
+        }
+
+        // BytesTransferred means actual bytes received
+        if (BytesTransferred == 0)
+        {
+            // server closes socket
+            //printf("Closing socket %d\n", SI->Socket);
+            FreeSocketInfo(&SI->Socket);
+            return;
+        }
+
+        if (SI->BytesRECV == 0)
+        {
+            // first package received
+            WriteToFile(cInfo->selFilename, SI->Buffer);
+        }
+        else
+        {
+            AppendToFile(cInfo->selFilename, SI->Buffer);
+        }
+        SI->BytesRECV += BytesTransferred;
+
+        Flags = 0;
+        ZeroMemory(&(SI->Overlapped), sizeof(WSAOVERLAPPED));
+
+        SI->DataBuf.len = DATA_BUFSIZE;
+        SI->DataBuf.buf = SI->Buffer;
+
+        if (WSARecv(SI->Socket, &(SI->DataBuf), 1, &RecvBytes, &Flags,
+            &(SI->Overlapped), RecvFileRoutine) == SOCKET_ERROR)
+        {
+            if (WSAGetLastError() != WSA_IO_PENDING)
+            {
+                printf("WSARecv() failed with error %d\n", WSAGetLastError());
+                return;
+            }
+        }
+        return;
+    }
+
+    /*----------------------------------------------------------------------
+    -- FUNCTION:	WriteToFile
+    --
+    -- DATE:		February 14, 2018
+    --
+    -- DESIGNER:	Luke Lee
+    --
+    -- PROGRAMMER:	Luke Lee
+    --
+    -- INTERFACE:	bool WriteToFile(std::string filePath, char *buffer)
+    --
+    -- ARGUMENT:	filePath		- a string path to file
+    --				buffer			- array of char
+    --
+    -- RETURNS:		bool			- returns true if succeffully write to
+    --								  file
+    --
+    -- NOTES:
+    -- This function writes the received buffer into a file specified by
+    -- user.
+    ----------------------------------------------------------------------*/
+    bool Client::WriteToFile(std::string filename, char *buffer)
+    {
+        //std::fstream fileWrite(filename, std::fstream::in | std::fstream::out | std::fstream::app);
+        fileWrite = fopen(filename.c_str(),"wb");
+        //if (fileWrite.is_open())
+        if (fileWrite)
+        {
+            //fileWrite << buffer;
+            fwrite(buffer, 1, DATA_BUFSIZE, fileWrite);
+            //fileWrite.close();
+            return true;
+        }
+        return false;
+    }
+
+    bool Client::AppendToFile(std::string filename, char *buffer)
+    {
+        /*
+        std::ofstream outfile;
+
+        outfile.open(filename, std::ios_base::app);
+        if (outfile.is_open())
+        {
+            outfile << buffer;
+            outfile.close();
+            return true;
+        }
+        return false;*/
+
+        //fileWrite = fopen(filename,"wb");
+        if (fileWrite)
+        {
+            fwrite(buffer, 1, DATA_BUFSIZE, fileWrite);
+            return true;
+        }
+        return false;
+    }
+
 
     /*----------------------------------------------------------------------
     -- FUNCTION:	CreateSocketInfo
@@ -142,7 +340,7 @@ namespace commaudio
     -- NOTES:
     -- This function creates a Socket Info struct corresponding to *s.
     ----------------------------------------------------------------------*/
-    void Client::CreateSocketInfo(SOCKET *s)
+    SOCKET_INFORMATION * Client::CreateSocketInfo(SOCKET *s)
     {
         SOCKET_INFORMATION *SI;
         char mStr[BUFSIZ];
@@ -151,18 +349,19 @@ namespace commaudio
         {
             sprintf_s(mStr, "GlobalAlloc() failed with error %d\n", GetLastError());
             //MessageBox(*hwnd, mStr, "Error", MB_OK);
-            return;
+            return nullptr;
         }
 
         // Prepare SocketInfo structure for use.
         SI->Socket = *s;
         ZeroMemory(&(SI->Overlapped), sizeof(WSAOVERLAPPED));
-        SI->BytesSEND = 0;
+        SI->BytesSENT = 0;
+        SI->BytesToSEND = 0;
         SI->BytesRECV = 0;
-        SI->DataBuf.len = BUFSIZ;
+        SI->DataBuf.len = DATA_BUFSIZE;
         SI->DataBuf.buf = SI->Buffer;
 
-        clntSocketInfo = SI;
+        return SI;
     }
 
     /*----------------------------------------------------------------------

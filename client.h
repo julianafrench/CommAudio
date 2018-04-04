@@ -13,17 +13,19 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <QDebug>
 
 namespace commaudio
 {
     struct ClientInfo
     {
-        HWND *hwnd;
+        //HWND *hwnd;
         std::string server_input;
         std::string songlist;
+        std::string selFilename;
         int port = DEF_PORT;
         bool isIPAddress = true;
-        char *sendBuffer;
+        //char sendBuffer[DATA_BUFSIZE];
         //int packetSize = DEF_P_SIZE;
         bool fileMode = true;
         bool *connected;
@@ -36,9 +38,16 @@ namespace commaudio
         Client() = delete;
         static bool ClntConnect(ClientInfo *clntInfo);
         //static void ClntProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
-        static bool ReceivePlaylist();
+        static void ReceivePlaylist();
+        static void ReceiveFileSetup();
+        static bool SendFilename(std::string filename);
+        static DWORD WINAPI ClntRecvThread(LPVOID lpParameter);
+        static void CALLBACK RecvFileRoutine(DWORD Error, DWORD BytesTransferred,
+            LPWSAOVERLAPPED Overlapped, DWORD InFlags);
+        static bool WriteToFile(std::string filename, char *buffer);
+        static bool AppendToFile(std::string filename, char *buffer);
 
-        static void CreateSocketInfo(SOCKET *s);
+        static struct SOCKET_INFORMATION * CreateSocketInfo(SOCKET *s);
         static struct SOCKET_INFORMATION * GetSocketInfo(SOCKET *s);
         static void FreeSocketInfo(SOCKET *s);
     };
