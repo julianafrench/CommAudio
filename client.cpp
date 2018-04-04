@@ -236,11 +236,13 @@ namespace commaudio
         if (SI->BytesRECV == 0)
         {
             // first package received
-            WriteToFile(cInfo->selFilename, SI->Buffer);
+            QByteArray temp(SI->Buffer, DATA_BUFSIZE);
+            WriteToFile(cInfo->selFilename, temp);
         }
         else
         {
-            AppendToFile(cInfo->selFilename, SI->Buffer);
+            QByteArray temp(SI->Buffer, DATA_BUFSIZE);
+            AppendToFile(cInfo->selFilename, temp);
         }
         SI->BytesRECV += BytesTransferred;
 
@@ -283,7 +285,7 @@ namespace commaudio
     -- This function writes the received buffer into a file specified by
     -- user.
     ----------------------------------------------------------------------*/
-    bool Client::WriteToFile(std::string filename, char *buffer)
+    bool Client::WriteToFile(std::string filename, QByteArray buffer)
     {
         //std::fstream fileWrite(filename, std::fstream::in | std::fstream::out | std::fstream::app);
         fileWrite = fopen(filename.c_str(),"wb");
@@ -291,14 +293,14 @@ namespace commaudio
         if (fileWrite)
         {
             //fileWrite << buffer;
-            fwrite(buffer, 1, DATA_BUFSIZE, fileWrite);
-            //fileWrite.close();
+            fwrite(buffer, 1, buffer.size(), fileWrite);
+            fclose(fileWrite);
             return true;
         }
         return false;
     }
 
-    bool Client::AppendToFile(std::string filename, char *buffer)
+    bool Client::AppendToFile(std::string filename, QByteArray buffer)
     {
         /*
         std::ofstream outfile;
@@ -312,10 +314,11 @@ namespace commaudio
         }
         return false;*/
 
-        //fileWrite = fopen(filename,"wb");
+        fileWrite = fopen(filename.c_str(), "ab");
         if (fileWrite)
         {
-            fwrite(buffer, 1, DATA_BUFSIZE, fileWrite);
+            fwrite(buffer, 1, buffer.size(), fileWrite);
+            fclose(fileWrite);
             return true;
         }
         return false;

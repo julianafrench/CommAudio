@@ -201,6 +201,10 @@ namespace commaudio
         {
             std::string selectedFile = "";
             selectedFile += svrSocketInfo->DataBuf.buf;
+            if (sInfo->fileRead.is_open())
+            {
+                sInfo->fileRead.close();
+            }
             if (!ValidateFilename(selectedFile))
             {
                 // error msg on file not found
@@ -215,7 +219,7 @@ namespace commaudio
             //SI->BytesSEND += BytesTransferred;
         }
 
-        if (SI->BytesToSEND > 0)
+        if (SI->BytesSENT < SI->BytesToSEND)
         {
 
             // Post another WSASend() request.
@@ -232,11 +236,18 @@ namespace commaudio
                 // error msg for readfile failure
                 return;
             }
-            //SI->DataBuf.buf = SI->Buffer;
-            //SI->DataBuf.len = DATA_BUFSIZE;
+            SI->DataBuf.buf = SI->Buffer;
+            if (SI->BytesToSEND - SI->BytesSENT < DATA_BUFSIZE)
+            {
+                SI->DataBuf.len = SI->BytesToSEND - SI->BytesSENT;
+            }
+            else
+            {
+                SI->DataBuf.len = DATA_BUFSIZE;
+            }
 
-            SI->DataBuf.buf = SI->SendBuff;
-            SI->DataBuf.len = SI->BytesToSEND - SI->BytesSENT;
+            //SI->DataBuf.buf = SI->SendBuff;
+            //SI->DataBuf.len = SI->BytesToSEND - SI->BytesSENT;
 
             printf("Sending msg: %s\n", SI->DataBuf.buf);
 
@@ -250,7 +261,7 @@ namespace commaudio
                 }
             }
             SI->BytesSENT += SendBytes;
-            SI->BytesToSEND -= SendBytes;
+            //SI->BytesToSEND -= SendBytes;
         }
         else
         {
