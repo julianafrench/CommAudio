@@ -44,8 +44,8 @@ namespace commaudio
         static DWORD WINAPI ClntRecvThread(LPVOID lpParameter);
         static void CALLBACK RecvFileRoutine(DWORD Error, DWORD BytesTransferred,
             LPWSAOVERLAPPED Overlapped, DWORD InFlags);
-        static bool WriteToFile(std::string filename, char *buffer);
-        static bool AppendToFile(std::string filename, char *buffer);
+        static bool WriteToFile(std::string filename, QByteArray buffer);
+        static bool AppendToFile(std::string filename, QByteArray buffer);
 
         static struct SOCKET_INFORMATION * CreateSocketInfo(SOCKET *s);
         static struct SOCKET_INFORMATION * GetSocketInfo(SOCKET *s);
