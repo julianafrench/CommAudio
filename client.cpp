@@ -43,8 +43,7 @@ namespace commaudio
         // Initialize and set up the address structure
         memset((char *)&server, 0, sizeof(struct sockaddr_in));
         server.sin_family = AF_INET;
-        server.sin_port = htons
-        (cInfo->port);
+        server.sin_port = htons(cInfo->port);
         if (cInfo->isIPAddress)
         {
             struct in_addr* addr_p;

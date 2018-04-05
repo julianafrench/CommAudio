@@ -27,13 +27,15 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     server.cpp \
-    client.cpp
+    client.cpp \
+    circularbuffer.cpp
 
 HEADERS += \
         mainwindow.h \
     server.h \
     client.h \
-    socketstruct.h
+    socketstruct.h \
+    circularbuffer.h
 
 FORMS += \
         mainwindow.ui
