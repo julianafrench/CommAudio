@@ -31,3 +31,8 @@ void* CircularBuffer::get()
     bufferIsNotFull.wakeOne();
     return item;
 }
+
+CircularBuffer::~CircularBuffer()
+{
+    free(buffer);
+}
