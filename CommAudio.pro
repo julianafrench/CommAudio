@@ -26,16 +26,16 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
+    circularbuffer.cpp \
     server.cpp \
-    client.cpp \
-    circularbuffer.cpp
+    client.cpp
 
 HEADERS += \
         mainwindow.h \
+    circularbuffer.h \
     server.h \
     client.h \
-    socketstruct.h \
-    circularbuffer.h
+    socketstruct.h
 
 FORMS += \
         mainwindow.ui

@@ -1,5 +1,6 @@
 #include "Client.h"
 #include "SocketStruct.h"
+#include "circularbuffer.h"
 
 namespace commaudio
 {
@@ -13,6 +14,8 @@ namespace commaudio
 
     FILE *fileWrite;
 
+    CircularBuffer *cBuffer;
+
     bool Client::ClntConnect(ClientInfo *clntInfo)
     {
         WSADATA stWSAData;
@@ -20,6 +23,8 @@ namespace commaudio
         DWORD Ret;
         struct hostent	*hp;
         char mStr[BUFSIZ];
+
+        cBuffer = new CircularBuffer(5, DATA_BUFSIZE);
 
         cInfo = clntInfo;
         //hwnd = cInfo->hwnd;
@@ -236,12 +241,23 @@ namespace commaudio
         {
             // first package received
             QByteArray temp(SI->Buffer, DATA_BUFSIZE);
+            cBuffer->put(&temp);
+            //QByteArray *temp2 = static_cast<QByteArray*>(cBuffer->pop());
             WriteToFile(cInfo->selFilename, temp);
         }
         else
         {
             QByteArray temp(SI->Buffer, DATA_BUFSIZE);
-            AppendToFile(cInfo->selFilename, temp);
+            cBuffer->put(&temp);
+            if (cBuffer->isFull())
+            {
+                QByteArray *temp2 = static_cast<QByteArray*>(cBuffer->pop());
+                AppendToFile(cInfo->selFilename, *temp2);
+            }
+            else
+            {
+                AppendToFile(cInfo->selFilename, temp);
+            }
         }
         SI->BytesRECV += BytesTransferred;
 
