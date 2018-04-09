@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QDialog>
+#include <QFileDialog>
 
 namespace Ui {
 class SettingsWindow;
@@ -22,6 +23,7 @@ public:
     QString GetIpAddress();
     QString GetBroadcastMode();
     QString GetFileName();
+    void ShowFilePicker();
 
 private:
     void ToggleClientServerUi(QString ignoreThis = "");

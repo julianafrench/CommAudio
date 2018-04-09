@@ -1,7 +1,6 @@
 #include "settingswindow.h"
 #include "ui_settingswindow.h"
 
-
 SettingsWindow::SettingsWindow(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SettingsWindow)
@@ -10,6 +9,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) :
     ToggleClientServerUi();
     connect(ui->HostModeComboBox, &QComboBox::currentTextChanged, this, &SettingsWindow::ToggleClientServerUi);
     connect(ui->TransferModeComboBox, &QComboBox::currentTextChanged, this, &SettingsWindow::ToggleClientServerUi);
+    connect(ui->FilePickerButton, &QToolButton::clicked, this, &SettingsWindow::ShowFilePicker);
 }
 
 SettingsWindow::~SettingsWindow()
@@ -39,7 +39,7 @@ QString SettingsWindow::GetBroadcastMode()
 
 QString SettingsWindow::GetFileName()
 {
-    return ui->FileNameLineEdit->text().trimmed();
+    return ui->FileNameLineEdit->text();
 }
 
 void SettingsWindow::ToggleClientServerUi(QString ignoreThis)
@@ -49,6 +49,7 @@ void SettingsWindow::ToggleClientServerUi(QString ignoreThis)
         ui->IpLineEdit->setEnabled(true);
         ui->BroadcastModeComboBox->setEnabled(false);
         ui->FileNameLineEdit->setEnabled(false);
+        ui->FilePickerButton->setEnabled(false);
     }
     if (GetHostMode() == "Server")
     {
@@ -57,11 +58,20 @@ void SettingsWindow::ToggleClientServerUi(QString ignoreThis)
         {
             ui->BroadcastModeComboBox->setEnabled(true);
             ui->FileNameLineEdit->setEnabled(true);
+            ui->FilePickerButton->setEnabled(true);
         }
         else
         {
             ui->BroadcastModeComboBox->setEnabled(false);
             ui->FileNameLineEdit->setEnabled(false);
+            ui->FilePickerButton->setEnabled(false);
         }
     }
+}
+
+void SettingsWindow::ShowFilePicker()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+        tr("Choose a file to stream"), "", tr("(*.wav)"));
+    ui->FileNameLineEdit->setText(fileName);
 }

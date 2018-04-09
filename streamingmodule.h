@@ -39,6 +39,7 @@ private:
     QTcpSocket* sendSocket;
     QDataStream* sendStream;
     SettingsWindow* settings;
+    QString fileToStreamName = "";
 
     void ToggleClientServerMode(const QString&);
     void ClientConnected();
