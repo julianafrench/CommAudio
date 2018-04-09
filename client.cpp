@@ -334,7 +334,7 @@ namespace commaudio
     --
     -- PROGRAMMER:	Luke Lee
     --
-    -- INTERFACE:	void CreateSocketInfo(SOCEKT *s)
+    -- INTERFACE:	void CreateSocketInfo(SOCKET *s)
     --
     -- ARGUMENT:	*s				- pointer to a socket
     --
