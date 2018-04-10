@@ -7,20 +7,20 @@
     <x>0</x>
     <y>0</y>
     <width>531</width>
-    <height>322</height>
+    <height>339</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>503</width>
-      <height>225</height>
+      <width>505</width>
+      <height>251</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_2">
@@ -30,9 +30,9 @@
      <item row="1" column="0">
       <layout class="QGridLayout" name="gridLayout">
        <item row="0" column="0">
-        <widget class="QPushButton" name="pushButton">
+        <widget class="QPushButton" name="StartMicButton">
          <property name="text">
-          <string>Microphone</string>
+          <string>Start Mic</string>
          </property>
         </widget>
        </item>
@@ -84,9 +84,49 @@
          </property>
         </widget>
        </item>
+       <item row="1" column="0">
+        <widget class="QPushButton" name="StartSpeakerButton">
+         <property name="text">
+          <string>Start Speaker</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QPushButton" name="StreamDisconnectButton">
+         <property name="text">
+          <string>temp close</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </item>
     </layout>
+   </widget>
+   <widget class="QLabel" name="SenderStatusLabel">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>270</y>
+      <width>251</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Sender status</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="ReceiverStatusLabel">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>270</y>
+      <width>241</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Receiver status</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -103,13 +143,6 @@
      <string>File</string>
     </property>
     <addaction name="actionExit"/>
-   </widget>
-   <widget class="QMenu" name="menuMode">
-    <property name="title">
-     <string>Host Type</string>
-    </property>
-    <addaction name="actionServer"/>
-    <addaction name="actionClient"/>
    </widget>
    <widget class="QMenu" name="menuTransfer">
     <property name="title">
@@ -130,10 +163,9 @@
     </property>
    </widget>
    <addaction name="menuTransfer"/>
-   <addaction name="menuMode"/>
+   <addaction name="menuFile"/>
    <addaction name="menuAbout"/>
    <addaction name="menuHelp"/>
-   <addaction name="menuFile"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
