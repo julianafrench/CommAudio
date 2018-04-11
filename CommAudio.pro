@@ -31,7 +31,8 @@ SOURCES += \
     settingswindow.cpp \
     streamingmodule.cpp \
     helpwindow.cpp \
-    aboutwindow.cpp
+    aboutwindow.cpp \
+    iosocketpair.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -41,7 +42,8 @@ HEADERS += \
     settingswindow.h \
     streamingmodule.h \
     helpwindow.h \
-    aboutwindow.h
+    aboutwindow.h \
+    iosocketpair.h
 
 FORMS += \
         mainwindow.ui \

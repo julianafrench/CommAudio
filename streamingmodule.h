@@ -1,24 +1,17 @@
 #ifndef STREAMINGMODULE_H
 #define STREAMINGMODULE_H
 
-#include <QObject>
-#include <QTcpSocket>
 #include <QTcpServer>
-#include <QAudioFormat>
-#include <QAudioInput>
-#include <QAudioOutput>
-#include <QDebug>
-#include <QFile>
-#include <QDataStream>
-
 #include "settingswindow.h"
+#include "iosocketpair.h"
 
 class StreamingModule : public QObject
 {
     Q_OBJECT
 public:
-    StreamingModule(QObject* parent = nullptr, SettingsWindow* settings = nullptr);
+    StreamingModule(QObject* parent = nullptr);
     ~StreamingModule();
+    SettingsWindow* settings;
 
 signals:
     void SenderStatusUpdated(const QString&);
@@ -31,24 +24,22 @@ public slots:
     void StartReceiver();
 
 private:
-    QAudioOutput* output;
-    QAudioInput* input;
     QAudioFormat* format;
     QTcpServer* receiver;
-    QTcpSocket* recvSocket;
-    QTcpSocket* sendSocket;
-    QDataStream* sendStream;
-    SettingsWindow* settings;
-    QString fileToStreamName = "";
+    QMap<QHostAddress, IOSocketPair*> connectionList;
+    bool AlreadyDisconnecting = false;
+    void RemoveSocketPair(QHostAddress);
 
-    void ToggleClientServerMode(const QString&);
+private slots:
     void ClientConnected();
     void ClientDisconnected();
+    void ServerDisconnected();
+
     void StartAudioOutput();
     void StartAudioInput();
-    void ConnectedToServer();
-    void DisconnectedFromServer();
+
     void GetSocketError(QTcpSocket::SocketError);
+
 };
 
 #endif // STREAMINGMODULE_H
