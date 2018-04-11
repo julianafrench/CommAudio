@@ -27,7 +27,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->menuAbout, &QMenu::aboutToHide, this, &MainWindow::on_actionAbout_triggered);
     connect(ui->menuHelp, &QMenu::aboutToHide, this, &MainWindow::on_actionHelp_triggered);
 
-    streamer = new StreamingModule(this, settings);
+    streamer = new StreamingModule;
+    streamer->settings = settings;
+    streamer->moveToThread(&streamingThread);
+    connect(&streamingThread, &QThread::finished, streamer, &QObject::deleteLater);
+    streamingThread.start();
+
     connect(ui->StartSpeakerButton, &QPushButton::pressed, streamer, &StreamingModule::StartReceiver);
     connect(ui->StartMicButton, &QPushButton::pressed, streamer, &StreamingModule::AttemptStreamConnect);
     connect(streamer, &StreamingModule::ReceiverStatusUpdated, this, &MainWindow::UpdateReceiverStatus);
@@ -69,6 +74,10 @@ MainWindow::~MainWindow()
     {
         free(clntInfo);
     }
+    streamingThread.quit();
+    streamingThread.wait();
+    delete settings;
+    //streamer is connected to delete once thread finished
     delete ui;
 }
 

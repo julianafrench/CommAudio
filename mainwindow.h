@@ -6,6 +6,7 @@
 #define UNDEFINED -1
 
 #include <QMainWindow>
+#include <QThread>
 #include <winsock2.h>   // winsock2.h needs to be include before windows.h, otherwise will have redefinition problem
 #include <windows.h>
 
@@ -48,6 +49,7 @@ private:
     QString playlist;
     int hostType;
     StreamingModule* streamer;
+    QThread streamingThread;
 };
 
 #endif // MAINWINDOW_H
