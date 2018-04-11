@@ -12,6 +12,7 @@
 
 #include "settingswindow.h"
 #include "streamingmodule.h"
+#include "mediaplayermodule.h"
 
 namespace Ui {
 class MainWindow;
@@ -35,13 +36,15 @@ private slots:
     void on_actionSettings_triggered();
     void on_actionHelp_triggered();
     void on_actionAbout_triggered();
-    void on_saveBtn_clicked();
+    void on_SaveButton_clicked();
 
     void UpdateSettings();
     void ToggleClientServerUi();
     void ToggleStreaming(bool);
     void UpdateSenderStatus(QString);
     void UpdateReceiverStatus(QString);
+    void InitializeSongDuration(qint64);
+    void UpdateSongProgress(qint64);
 
 private:
     Ui::MainWindow* ui;
@@ -50,6 +53,7 @@ private:
     int hostType;
     StreamingModule* streamer;
     QThread streamingThread;
+    MediaPlayerModule* mediaPlayer;
 };
 
 #endif // MAINWINDOW_H
