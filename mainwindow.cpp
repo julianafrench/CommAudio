@@ -21,30 +21,62 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     hostType = UNDEFINED;
 
+    // settings setup
     settings = new SettingsWindow(parent);
     connect(settings, &QDialog::accepted, this, &MainWindow::UpdateSettings);
-
     connect(ui->menuAbout, &QMenu::aboutToHide, this, &MainWindow::on_actionAbout_triggered);
     connect(ui->menuHelp, &QMenu::aboutToHide, this, &MainWindow::on_actionHelp_triggered);
 
+    // streaming setup
     streamer = new StreamingModule;
     streamer->settings = settings;
     streamer->moveToThread(&streamingThread);
     connect(&streamingThread, &QThread::finished, streamer, &QObject::deleteLater);
     streamingThread.start();
-
-    connect(ui->StartSpeakerButton, &QPushButton::pressed, streamer, &StreamingModule::StartReceiver);
-    connect(ui->StartMicButton, &QPushButton::pressed, streamer, &StreamingModule::AttemptStreamConnect);
+    // streaming slots
+    connect(ui->StartSpeakerButton, &QPushButton::clicked, streamer, &StreamingModule::StartReceiver);
+    connect(ui->StartMicButton, &QPushButton::clicked, streamer, &StreamingModule::AttemptStreamConnect);
     connect(streamer, &StreamingModule::ReceiverStatusUpdated, this, &MainWindow::UpdateReceiverStatus);
     connect(streamer, &StreamingModule::SenderStatusUpdated, this, &MainWindow::UpdateSenderStatus);
-
-    connect(ui->StreamDisconnectButton, &QPushButton::pressed, streamer, &StreamingModule::AttemptStreamDisconnect);
+    connect(ui->StreamDisconnectButton, &QPushButton::clicked, streamer, &StreamingModule::AttemptStreamDisconnect);
     connect(streamer, &StreamingModule::ReceiverReady, this, &MainWindow::ToggleStreaming);
     ToggleStreaming(false);
     UpdateSettings();
-    // connect menu items to actions
-    //connect(ui->actionServer, &QAction::triggered, this, &MainWindow::on_actionServer_triggered);
-    //connect(ui->saveBtn, &QPushButton::clicked, this, &MainWindow::on_actionServer_triggered);
+
+    //media player setup
+    mediaPlayer = new MediaPlayerModule;
+    connect(ui->FilePickerButton, &QPushButton::clicked, mediaPlayer, &MediaPlayerModule::ShowFilePicker);
+    connect(ui->PlayButton, &QPushButton::clicked, mediaPlayer, &MediaPlayerModule::Play);
+    connect(ui->PauseButton, &QPushButton::clicked, mediaPlayer, &MediaPlayerModule::Pause);
+    connect(ui->StopButton, &QPushButton::clicked, mediaPlayer, &MediaPlayerModule::Stop);
+    connect(ui->FastForwardButton, &QPushButton::clicked, mediaPlayer, &MediaPlayerModule::FastForward);
+    connect(ui->SlowForwardButton, &QPushButton::clicked, mediaPlayer, &MediaPlayerModule::SlowForward);
+    connect(mediaPlayer->player, &QMediaPlayer::durationChanged, this, &MainWindow::InitializeSongDuration);
+    connect(mediaPlayer->player, &QMediaPlayer::positionChanged, this, &MainWindow::UpdateSongProgress);
+    connect(ui->SongProgressSlider, &QSlider::sliderMoved, mediaPlayer, &MediaPlayerModule::ChangeSongPosition);
+}
+
+void MainWindow::UpdateSongProgress(qint64 position)
+{
+    qint64 totalSecondsPlayed = position / 1000;
+    long minutes = totalSecondsPlayed / 60;
+    long seconds = totalSecondsPlayed % 60;
+    QString minutesStr = QString("%1").arg(minutes, 2, 10, QChar('0'));
+    QString secondsStr = QString("%1").arg(seconds, 2, 10, QChar('0'));
+    ui->SongProgressLabel->setText(minutesStr + ":" + secondsStr);
+    ui->SongProgressSlider->setValue(totalSecondsPlayed);
+}
+
+void MainWindow::InitializeSongDuration(qint64 duration_ms)
+{
+    qint64 totalSeconds = duration_ms / 1000;
+    long minutes = totalSeconds / 60;
+    long seconds = totalSeconds % 60;
+    QString minutesStr = QString("%1").arg(minutes, 2, 10, QChar('0'));
+    QString secondsStr = QString("%1").arg(seconds, 2, 10, QChar('0'));
+    ui->SongDurationLabel->setText(minutesStr + ":" + secondsStr);
+    ui->SongProgressSlider->setMaximum(totalSeconds);
+    ui->SongProgressLabel->setText("00:00");
 }
 
 void MainWindow::ToggleStreaming(bool streamReady)
@@ -197,7 +229,7 @@ QString MainWindow::getSelectedFile()
     return "";
 }
 
-void MainWindow::on_saveBtn_clicked()
+void MainWindow::on_SaveButton_clicked()
 {
     if (hostType == CLIENT)
     {
