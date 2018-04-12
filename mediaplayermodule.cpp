@@ -31,7 +31,7 @@ void MediaPlayerModule::Play()
         msgBox.exec();
         return;
     }
-    player->play(); //will
+    player->play();
 }
 
 void MediaPlayerModule::Pause()

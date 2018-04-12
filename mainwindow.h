@@ -39,7 +39,6 @@ private slots:
     void on_SaveButton_clicked();
 
     void UpdateSettings();
-    void ToggleClientServerUi();
     void ToggleStreaming(bool);
     void UpdateSenderStatus(QString);
     void UpdateReceiverStatus(QString);

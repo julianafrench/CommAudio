@@ -26,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(settings, &QDialog::accepted, this, &MainWindow::UpdateSettings);
     connect(ui->menuAbout, &QMenu::aboutToHide, this, &MainWindow::on_actionAbout_triggered);
     connect(ui->menuHelp, &QMenu::aboutToHide, this, &MainWindow::on_actionHelp_triggered);
+    UpdateSettings();
 
     // streaming setup
     streamer = new StreamingModule;
@@ -41,9 +42,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->StreamDisconnectButton, &QPushButton::clicked, streamer, &StreamingModule::AttemptStreamDisconnect);
     connect(streamer, &StreamingModule::ReceiverReady, this, &MainWindow::ToggleStreaming);
     ToggleStreaming(false);
-    UpdateSettings();
 
-    //media player setup
+    // media player setup
     mediaPlayer = new MediaPlayerModule;
     connect(ui->FilePickerButton, &QPushButton::clicked, mediaPlayer, &MediaPlayerModule::ShowFilePicker);
     connect(ui->PlayButton, &QPushButton::clicked, mediaPlayer, &MediaPlayerModule::Play);
@@ -224,7 +224,6 @@ QString MainWindow::getSelectedFile()
     if(ui->listWidget->count() != 0)
     {
         return ui->listWidget->currentItem()->text();
-        //qDebug("selected: " + filename);
     }
     return "";
 }
@@ -244,11 +243,6 @@ void MainWindow::on_SaveButton_clicked()
 void MainWindow::on_actionSettings_triggered()
 {
     settings->exec();
-}
-
-void MainWindow::ToggleClientServerUi()
-{
-    //nothing yet, stuff to come?
 }
 
 void MainWindow::on_actionHelp_triggered()
