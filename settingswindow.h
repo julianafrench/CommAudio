@@ -16,7 +16,6 @@ class SettingsWindow : public QDialog
 public:
     explicit SettingsWindow(QWidget *parent = 0);
     ~SettingsWindow();
-    Ui::SettingsWindow* ui;
 
     QString GetHostMode();
     QString GetTransferMode();
@@ -27,6 +26,7 @@ public:
 
 private:
     void ToggleClientServerUi(QString ignoreThis = "");
+    Ui::SettingsWindow* ui;
 
 };
 
