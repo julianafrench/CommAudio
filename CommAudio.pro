@@ -26,26 +26,23 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    server.cpp \
-    client.cpp \
     settingswindow.cpp \
     streamingmodule.cpp \
     helpwindow.cpp \
     aboutwindow.cpp \
     iosocketpair.cpp \
-    mediaplayermodule.cpp
+    mediaplayermodule.cpp \
+    transfermodule.cpp
 
 HEADERS += \
         mainwindow.h \
-    server.h \
-    client.h \
-    socketstruct.h \
     settingswindow.h \
     streamingmodule.h \
     helpwindow.h \
     aboutwindow.h \
     iosocketpair.h \
-    mediaplayermodule.h
+    mediaplayermodule.h \
+    transfermodule.h
 
 FORMS += \
         mainwindow.ui \

@@ -193,12 +193,6 @@
      <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFile">
-    <property name="title">
-     <string>File</string>
-    </property>
-    <addaction name="actionExit"/>
-   </widget>
    <widget class="QMenu" name="menuTransfer">
     <property name="title">
      <string>Transfer</string>
@@ -218,7 +212,6 @@
     </property>
    </widget>
    <addaction name="menuTransfer"/>
-   <addaction name="menuFile"/>
    <addaction name="menuAbout"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -231,11 +224,6 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="actionExit">
-   <property name="text">
-    <string>Exit</string>
-   </property>
-  </action>
   <action name="actionServer">
    <property name="checkable">
     <bool>true</bool>

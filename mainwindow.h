@@ -13,6 +13,7 @@
 #include "settingswindow.h"
 #include "streamingmodule.h"
 #include "mediaplayermodule.h"
+#include "transfermodule.h"
 
 namespace Ui {
 class MainWindow;
@@ -29,19 +30,23 @@ public:
     QString getSelectedFile();
 
 private slots:
-    void on_actionExit_triggered();
     void on_actionServer_triggered();
     void on_actionClient_triggered();
     void on_actionConnect_triggered();
+    void on_actionDisconnect_triggered();
     void on_actionSettings_triggered();
     void on_actionHelp_triggered();
     void on_actionAbout_triggered();
     void on_SaveButton_clicked();
+    void EnableConnect();
+    void EnableDisconnect();
+    void UpdatePlaylist(QString);
 
-    void UpdateSettings();
-    void ToggleStreaming(bool);
     void UpdateSenderStatus(QString);
     void UpdateReceiverStatus(QString);
+    void UpdateSettings();
+
+    void ToggleStreaming(bool);
     void InitializeSongDuration(qint64);
     void UpdateSongProgress(qint64);
 
@@ -53,6 +58,7 @@ private:
     StreamingModule* streamer;
     QThread streamingThread;
     MediaPlayerModule* mediaPlayer;
+    TransferModule* transferer;
 };
 
 #endif // MAINWINDOW_H
