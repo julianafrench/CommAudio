@@ -22,6 +22,7 @@ namespace commaudio
         //HWND *hwnd;
         std::string server_input;
         std::string songlist;
+        QStringList songSizes;
         std::string selFilename;
         int port = DEF_PORT;
         bool isIPAddress = true;
@@ -38,7 +39,7 @@ namespace commaudio
         Client() = delete;
         static bool ClntConnect(ClientInfo *clntInfo);
         //static void ClntProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
-        static void ReceivePlaylist();
+        static void ReceiveFileInfo();
         static void ReceiveFileSetup();
         static bool SendFilename(std::string filename);
         static DWORD WINAPI ClntRecvThread(LPVOID lpParameter);
@@ -46,6 +47,7 @@ namespace commaudio
             LPWSAOVERLAPPED Overlapped, DWORD InFlags);
         static bool WriteToFile(std::string filename, QByteArray buffer);
         static bool AppendToFile(std::string filename, QByteArray buffer);
+        static void Disconnect();
 
         static struct SOCKET_INFORMATION * CreateSocketInfo(SOCKET *s);
         static struct SOCKET_INFORMATION * GetSocketInfo(SOCKET *s);

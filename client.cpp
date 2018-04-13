@@ -106,7 +106,7 @@ namespace commaudio
         return true;
     }
 
-    void Client::ReceivePlaylist()
+    void Client::ReceiveFileInfo()
     {
         DWORD flags;
         DWORD recvBytes;
@@ -323,6 +323,11 @@ namespace commaudio
         return false;
     }
 
+    void Client::Disconnect()
+    {
+        cInfo->connected = false;
+        FreeSocketInfo(&clntSocketInfo->Socket);
+    }
 
     /*----------------------------------------------------------------------
     -- FUNCTION:	CreateSocketInfo

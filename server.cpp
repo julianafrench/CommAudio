@@ -173,7 +173,7 @@ namespace commaudio
         LPWSAOVERLAPPED Overlapped, DWORD InFlags)
     {
         DWORD SendBytes, RecvBytes;
-        DWORD Flags;
+        //DWORD Flags;
 
         // Reference the WSAOVERLAPPED structure as a SOCKET_INFORMATION structure
         SOCKET_INFORMATION *SI = (SOCKET_INFORMATION *)Overlapped;
@@ -231,12 +231,6 @@ namespace commaudio
             //SI->DataBuf.buf = SI->Buffer + SI->BytesSEND;
             //SI->DataBuf.len = SI->BytesRECV - SI->BytesSEND;
 
-            if (!sInfo->fileRead.read(SI->Buffer, DATA_BUFSIZE))
-            {
-                // error msg for readfile failure
-                return;
-            }
-            SI->DataBuf.buf = SI->Buffer;
             if (SI->BytesToSEND - SI->BytesSENT < DATA_BUFSIZE)
             {
                 SI->DataBuf.len = SI->BytesToSEND - SI->BytesSENT;
@@ -245,6 +239,12 @@ namespace commaudio
             {
                 SI->DataBuf.len = DATA_BUFSIZE;
             }
+            if (!sInfo->fileRead.read(SI->Buffer, SI->DataBuf.len))
+            {
+                // error msg for readfile failure
+                return;
+            }
+            SI->DataBuf.buf = SI->Buffer;
 
             //SI->DataBuf.buf = SI->SendBuff;
             //SI->DataBuf.len = SI->BytesToSEND - SI->BytesSENT;
@@ -269,13 +269,13 @@ namespace commaudio
             sInfo->fileRead.close();
 
             // Now that there are no more bytes to send post another WSARecv() request.
-            Flags = 0;
+            //Flags = 0;
             ZeroMemory(&(SI->Overlapped), sizeof(WSAOVERLAPPED));
 
             SI->DataBuf.len = DATA_BUFSIZE;
             SI->DataBuf.buf = SI->Buffer;
 
-            if (WSARecv(SI->Socket, &(SI->DataBuf), 1, &RecvBytes, &Flags,
+            if (WSARecv(SI->Socket, &(SI->DataBuf), 1, &RecvBytes, &InFlags,
                 &(SI->Overlapped), SendFileRoutine) == SOCKET_ERROR)
             {
                 if (WSAGetLastError() != WSA_IO_PENDING)
@@ -285,6 +285,12 @@ namespace commaudio
                 }
             }
         }
+    }
+
+    void Server::Disconnect()
+    {
+        sInfo->connected = false;
+        FreeSocketInfo(&svrSocketInfo->Socket);
     }
 
     /*----------------------------------------------------------------------

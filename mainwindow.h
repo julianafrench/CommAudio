@@ -26,6 +26,9 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     QString loadPlaylist();
+    void displayPlaylistByRow(int row);
+    QString loadFileSize();
+    void displayFileSizeByRow(int row);
     QString getSelectedFile();
 
 private slots:
@@ -33,6 +36,7 @@ private slots:
     void on_actionServer_triggered();
     void on_actionClient_triggered();
     void on_actionConnect_triggered();
+    void on_actionDisconnect_triggered();
     void on_actionSettings_triggered();
     void on_actionHelp_triggered();
     void on_actionAbout_triggered();
@@ -53,6 +57,8 @@ private:
     StreamingModule* streamer;
     QThread streamingThread;
     MediaPlayerModule* mediaPlayer;
+    QStringList fileNames;
+    QStringList fileSizes;
 };
 
 #endif // MAINWINDOW_H

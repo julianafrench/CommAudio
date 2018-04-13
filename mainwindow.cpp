@@ -21,6 +21,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     hostType = UNDEFINED;
 
+    // table widget setup
+    ui->tableWidget->setColumnCount(2);
+    ui->tableWidget->setColumnWidth(0, this->width() * 0.7);
+    ui->tableWidget->setColumnWidth(1, this->width() * 0.2);
+    ui->tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+
     // settings setup
     settings = new SettingsWindow(parent);
     connect(settings, &QDialog::accepted, this, &MainWindow::UpdateSettings);
@@ -138,19 +144,72 @@ void MainWindow::on_actionExit_triggered()
 
 QString MainWindow::loadPlaylist()
 {
-    ui->listWidget->clear();
+    //ui->listWidget->clear();
+    ui->tableWidget->clear();
+    QString fileStr = "";
 
-    QDir directory(QDir::currentPath());
-    QStringList fileFilter("*.wav");
+    if (hostType == SERVER)
+    {
+        QDir directory(QDir::currentPath());
+        QStringList fileFilter("*.wav");
 
-    QStringList files = directory.entryList(fileFilter);
+        fileNames = directory.entryList(fileFilter);
 
-    ui->listWidget->addItems(files);
-    ui->listWidget->setCurrentRow(0);
+        for (int i = 0; i < fileNames.size(); i++)
+        {
+            ui->tableWidget->insertRow(i);
 
-    QString fileStr = files.join(";");
+            // display file name
+            displayPlaylistByRow(i);
 
+            // display file size
+            QFileInfo fInfo(fileNames[i]);
+            fileSizes.append(QString::number(fInfo.size()));
+            displayFileSizeByRow(i);
+        }
+        //ui->listWidget->addItems(fileNames);
+        //ui->listWidget->setCurrentRow(0);
+
+        QString nameStr = fileNames.join(";");
+        QString sizeStr = fileSizes.join(";");
+        fileStr = nameStr + "|" + sizeStr;
+    }
+    else if (hostType == CLIENT)
+    {
+        QStringList fileInfo = playlist.split("|");
+        fileNames = fileInfo[0].split(";");
+        fileSizes = fileInfo[1].split(";");
+        clntInfo->songSizes = fileSizes;
+
+        for (int i = 0; i < fileNames.size(); i++)
+        {
+            ui->tableWidget->insertRow(i);
+            // display file name
+            displayPlaylistByRow(i);
+
+            // display file size
+            displayFileSizeByRow(i);
+        }
+    }
+    ui->tableWidget->setHorizontalHeaderLabels(QStringList() << "File Name" << "File Size (B)");
     return fileStr;
+}
+
+void MainWindow::displayPlaylistByRow(int row)
+{
+    QTableWidgetItem *fName = new QTableWidgetItem;
+    fName->setText(fileNames[row]);
+    // disable editing
+    fName->setFlags(fName->flags() & ~Qt::ItemIsEditable);
+    ui->tableWidget->setItem(row, 0, fName);
+}
+
+void MainWindow::displayFileSizeByRow(int row)
+{
+    QTableWidgetItem *fSize = new QTableWidgetItem;
+    fSize->setText(fileSizes[row]);
+    fSize->setFlags(Qt::NoItemFlags);
+    ui->tableWidget->setItem(row, 1, fSize);
 }
 
 void MainWindow::on_actionServer_triggered()
@@ -170,8 +229,9 @@ void MainWindow::on_actionConnect_triggered()
 {
     if (hostType == SERVER)
     {
-        playlist = loadPlaylist();
-        svrInfo->songlist = playlist.toStdString();
+        //playlist = loadPlaylist();
+        svrInfo->songlist = loadPlaylist().toStdString();
+        //svrInfo->fileSizeList = loadFileSize().toStdString();
 
         // create server thread
         DWORD svrThrdID;
@@ -188,13 +248,15 @@ void MainWindow::on_actionConnect_triggered()
             connected = true;
             clntInfo->connected = &connected;
             //qDebug("Clnt with socket " + clntInfo->sendSocket + " connected");
-            Client::ReceivePlaylist();
+            Client::ReceiveFileInfo();
             playlist = QString::fromStdString(clntInfo->songlist);
+            //Client::ReceiveFileSizeList();
 
             if (playlist != "")
             {
-                ui->listWidget->addItems(playlist.split(";"));
-                ui->listWidget->setCurrentRow(0);
+                //ui->listWidget->addItems(playlist.split(";"));
+                //ui->listWidget->setCurrentRow(0);
+                QString temp = loadPlaylist();
             }
             else
             {
@@ -205,6 +267,18 @@ void MainWindow::on_actionConnect_triggered()
     }
 }
 
+void MainWindow::on_actionDisconnect_triggered()
+{
+    qDebug() << "disconnected.";
+    if (hostType == SERVER)
+    {
+        Server::Disconnect();
+    }
+    else if (hostType == CLIENT)
+    {
+        Client::Disconnect();
+    }
+}
 
 DWORD WINAPI serverThread(LPVOID svrInfo)
 {
@@ -221,9 +295,9 @@ DWORD WINAPI serverThread(LPVOID svrInfo)
 
 QString MainWindow::getSelectedFile()
 {
-    if(ui->listWidget->count() != 0)
+    if(ui->tableWidget->rowCount() != 0)
     {
-        return ui->listWidget->currentItem()->text();
+        return ui->tableWidget->currentItem()->text();
     }
     return "";
 }

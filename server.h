@@ -45,6 +45,7 @@ namespace commaudio
         static bool ValidateFilename(std::string filepath);
         static void CALLBACK SendFileRoutine(DWORD Error, DWORD BytesTransferred,
             LPWSAOVERLAPPED Overlapped, DWORD InFlags);
+        static void Disconnect();
 
         static struct SOCKET_INFORMATION * CreateSocketInfo(SOCKET *s);
         static struct SOCKET_INFORMATION * GetSocketInfo(SOCKET *s);
