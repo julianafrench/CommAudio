@@ -13,7 +13,7 @@ namespace commaudio
     struct SOCKET_INFORMATION {
         //BOOL RecvPosted;
         OVERLAPPED Overlapped;
-        char *SendBuff;
+        char *TempBuff;
         char Buffer[DATA_BUFSIZE];
         WSABUF DataBuf;
         SOCKET Socket;

@@ -7,6 +7,7 @@
 
 #include <QMainWindow>
 #include <QThread>
+#include <QMessageBox>
 #include <winsock2.h>   // winsock2.h needs to be include before windows.h, otherwise will have redefinition problem
 #include <windows.h>
 
@@ -27,8 +28,8 @@ public:
     ~MainWindow();
     QString loadPlaylist();
     void displayPlaylistByRow(int row);
-    QString loadFileSize();
     void displayFileSizeByRow(int row);
+    void clearPlaylist();
     QString getSelectedFile();
 
 private slots:
@@ -59,6 +60,7 @@ private:
     MediaPlayerModule* mediaPlayer;
     QStringList fileNames;
     QStringList fileSizes;
+    QMessageBox msgBox;
 };
 
 #endif // MAINWINDOW_H

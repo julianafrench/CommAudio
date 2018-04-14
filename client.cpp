@@ -184,7 +184,7 @@ namespace commaudio
         // Save the recv event in the event array.
         EventArray[0] = (WSAEVENT)lpParameter;
 
-        while (TRUE)
+        while (!cInfo->saveDone)
         {
             // Wait for accept() to signal an event and also process SendFileRoutine() returns.
             while (TRUE)
@@ -212,6 +212,7 @@ namespace commaudio
     {
         DWORD RecvBytes;
         DWORD Flags;
+        int tempBufSize = DATA_BUFSIZE;
 
         // Reference the WSAOVERLAPPED structure as a SOCKET_INFORMATION structure
         SOCKET_INFORMATION *SI = (SOCKET_INFORMATION *)Overlapped;
@@ -232,15 +233,20 @@ namespace commaudio
             return;
         }
 
+        if (cInfo->selFileSize - SI->BytesRECV < DATA_BUFSIZE)
+        {
+            tempBufSize = cInfo->selFileSize - SI->BytesRECV;
+        }
+
         if (SI->BytesRECV == 0)
         {
             // first package received
-            QByteArray temp(SI->Buffer, DATA_BUFSIZE);
+            QByteArray temp(SI->DataBuf.buf, tempBufSize);
             WriteToFile(cInfo->selFilename, temp);
         }
         else
         {
-            QByteArray temp(SI->Buffer, DATA_BUFSIZE);
+            QByteArray temp(SI->DataBuf.buf, tempBufSize);
             AppendToFile(cInfo->selFilename, temp);
         }
         SI->BytesRECV += BytesTransferred;
@@ -248,19 +254,33 @@ namespace commaudio
         Flags = 0;
         ZeroMemory(&(SI->Overlapped), sizeof(WSAOVERLAPPED));
 
-        SI->DataBuf.len = DATA_BUFSIZE;
+        // check again because BytesRECV was updated
+        if (cInfo->selFileSize - SI->BytesRECV < DATA_BUFSIZE)
+        {
+            tempBufSize = cInfo->selFileSize - SI->BytesRECV;
+        }
+        SI->DataBuf.len = tempBufSize;
         SI->DataBuf.buf = SI->Buffer;
 
-        if (WSARecv(SI->Socket, &(SI->DataBuf), 1, &RecvBytes, &Flags,
-            &(SI->Overlapped), RecvFileRoutine) == SOCKET_ERROR)
+        if (SI->BytesRECV < cInfo->selFileSize)
         {
-            if (WSAGetLastError() != WSA_IO_PENDING)
+            if (WSARecv(SI->Socket, &(SI->DataBuf), 1, &RecvBytes, &Flags,
+                &(SI->Overlapped), RecvFileRoutine) == SOCKET_ERROR)
             {
-                printf("WSARecv() failed with error %d\n", WSAGetLastError());
-                return;
+                if (WSAGetLastError() != WSA_IO_PENDING)
+                {
+                    printf("WSARecv() failed with error %d\n", WSAGetLastError());
+                    return;
+                }
             }
         }
-        return;
+        else
+        {
+            SI->BytesRECV = 0;
+            cInfo->selFileSize = 0;
+            cInfo->saveDone = true;
+            return;
+        }
     }
 
     /*----------------------------------------------------------------------
@@ -423,8 +443,10 @@ namespace commaudio
         closesocket(*s);
         if (clntSocketInfo != nullptr)
         {
+            //delete[] clntSocketInfo->TempBuff;
             free(clntSocketInfo);
+            WSACleanup();
         }
-        WSACleanup();
+        cInfo->saveDone = true;
     }
 }

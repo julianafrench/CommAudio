@@ -173,7 +173,7 @@ namespace commaudio
         LPWSAOVERLAPPED Overlapped, DWORD InFlags)
     {
         DWORD SendBytes, RecvBytes;
-        //DWORD Flags;
+        DWORD Flags;
 
         // Reference the WSAOVERLAPPED structure as a SOCKET_INFORMATION structure
         SOCKET_INFORMATION *SI = (SOCKET_INFORMATION *)Overlapped;
@@ -211,7 +211,7 @@ namespace commaudio
                 return;
             }
             SI->BytesToSEND = sInfo->fileSize;
-            SI->SendBuff = new char(sInfo->fileSize);
+            SI->TempBuff = new char(sInfo->fileSize);
             SI->BytesSENT = 0;
         }
         else
@@ -246,7 +246,7 @@ namespace commaudio
             }
             SI->DataBuf.buf = SI->Buffer;
 
-            //SI->DataBuf.buf = SI->SendBuff;
+            //SI->DataBuf.buf = SI->TempBuff;
             //SI->DataBuf.len = SI->BytesToSEND - SI->BytesSENT;
 
             printf("Sending msg: %s\n", SI->DataBuf.buf);
@@ -269,13 +269,13 @@ namespace commaudio
             sInfo->fileRead.close();
 
             // Now that there are no more bytes to send post another WSARecv() request.
-            //Flags = 0;
+            Flags = 0;
             ZeroMemory(&(SI->Overlapped), sizeof(WSAOVERLAPPED));
 
             SI->DataBuf.len = DATA_BUFSIZE;
             SI->DataBuf.buf = SI->Buffer;
 
-            if (WSARecv(SI->Socket, &(SI->DataBuf), 1, &RecvBytes, &InFlags,
+            if (WSARecv(SI->Socket, &(SI->DataBuf), 1, &RecvBytes, &Flags,
                 &(SI->Overlapped), SendFileRoutine) == SOCKET_ERROR)
             {
                 if (WSAGetLastError() != WSA_IO_PENDING)
@@ -387,8 +387,9 @@ namespace commaudio
         closesocket(*s);
         if (svrSocketInfo != nullptr)
         {
+            //delete[] svrSocketInfo->TempBuff;
             free(svrSocketInfo);
+            WSACleanup();
         }
-        WSACleanup();
     }
 }

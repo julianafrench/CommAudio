@@ -144,8 +144,7 @@ void MainWindow::on_actionExit_triggered()
 
 QString MainWindow::loadPlaylist()
 {
-    //ui->listWidget->clear();
-    ui->tableWidget->clear();
+    clearPlaylist();
     QString fileStr = "";
 
     if (hostType == SERVER)
@@ -167,8 +166,6 @@ QString MainWindow::loadPlaylist()
             fileSizes.append(QString::number(fInfo.size()));
             displayFileSizeByRow(i);
         }
-        //ui->listWidget->addItems(fileNames);
-        //ui->listWidget->setCurrentRow(0);
 
         QString nameStr = fileNames.join(";");
         QString sizeStr = fileSizes.join(";");
@@ -229,9 +226,8 @@ void MainWindow::on_actionConnect_triggered()
 {
     if (hostType == SERVER)
     {
-        //playlist = loadPlaylist();
-        svrInfo->songlist = loadPlaylist().toStdString();
-        //svrInfo->fileSizeList = loadFileSize().toStdString();
+        playlist = loadPlaylist();
+        svrInfo->songlist = playlist.toStdString();
 
         // create server thread
         DWORD svrThrdID;
@@ -254,9 +250,7 @@ void MainWindow::on_actionConnect_triggered()
 
             if (playlist != "")
             {
-                //ui->listWidget->addItems(playlist.split(";"));
-                //ui->listWidget->setCurrentRow(0);
-                QString temp = loadPlaylist();
+                loadPlaylist();
             }
             else
             {
@@ -278,6 +272,15 @@ void MainWindow::on_actionDisconnect_triggered()
     {
         Client::Disconnect();
     }
+    clearPlaylist();
+    ui->actionConnect->setEnabled(true);
+}
+
+void MainWindow::clearPlaylist()
+{
+    ui->tableWidget->clear();
+    fileNames.clear();
+    fileSizes.clear();
 }
 
 DWORD WINAPI serverThread(LPVOID svrInfo)
@@ -297,7 +300,18 @@ QString MainWindow::getSelectedFile()
 {
     if(ui->tableWidget->rowCount() != 0)
     {
-        return ui->tableWidget->currentItem()->text();
+        if (ui->tableWidget->currentColumn() == 0)
+        {
+            bool converted = false;
+            int row = ui->tableWidget->currentRow();
+            QString str = ui->tableWidget->item(row, 1)->text();
+            clntInfo->selFileSize = str.toLong(&converted, 10);
+            return ui->tableWidget->currentItem()->text();
+        }
+        else
+        {
+            // display warning saying please select file name.
+        }
     }
     return "";
 }
@@ -306,11 +320,17 @@ void MainWindow::on_SaveButton_clicked()
 {
     if (hostType == CLIENT)
     {
+        clntInfo->saveDone = false;
         QString filename = getSelectedFile();
         if(Client::SendFilename(filename.toStdString()))
         {
+            //UpdateReceiverStatus("Transfering file: " + filename);
             Client::ReceiveFileSetup();
         }
+        while (!clntInfo->saveDone) {}
+        //UpdateReceiverStatus("Transfer finished.");
+        msgBox.setText("File transfer completed: " + filename);
+        msgBox.exec();
     }
 }
 

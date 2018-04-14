@@ -23,12 +23,14 @@ namespace commaudio
         std::string server_input;
         std::string songlist;
         QStringList songSizes;
+        unsigned long selFileSize;
         std::string selFilename;
         int port = DEF_PORT;
         bool isIPAddress = true;
         //char sendBuffer[DATA_BUFSIZE];
         //int packetSize = DEF_P_SIZE;
         bool fileMode = true;
+        bool saveDone = false;
         bool *connected;
         SOCKET *sendSocket;
     };
@@ -47,6 +49,7 @@ namespace commaudio
             LPWSAOVERLAPPED Overlapped, DWORD InFlags);
         static bool WriteToFile(std::string filename, QByteArray buffer);
         static bool AppendToFile(std::string filename, QByteArray buffer);
+        static void ClearBuffer(char* buffer);
         static void Disconnect();
 
         static struct SOCKET_INFORMATION * CreateSocketInfo(SOCKET *s);
