@@ -47,7 +47,10 @@ void TransferModule::Connect(QString playlist)
 void TransferModule::Disconnect()
 {
     if (ioSocket)
+    {
         ioSocket->close();
+        ioSocket->deleteLater();
+    }
     if (receiver)
         receiver->close();
     transmitting = false;
