@@ -241,12 +241,12 @@ namespace commaudio
         if (SI->BytesRECV == 0)
         {
             // first package received
-            QByteArray temp(SI->DataBuf.buf, tempBufSize);
+            QByteArray temp(SI->Buffer, tempBufSize);
             WriteToFile(cInfo->selFilename, temp);
         }
         else
         {
-            QByteArray temp(SI->DataBuf.buf, tempBufSize);
+            QByteArray temp(SI->Buffer, tempBufSize);
             AppendToFile(cInfo->selFilename, temp);
         }
         SI->BytesRECV += BytesTransferred;
@@ -257,6 +257,7 @@ namespace commaudio
         // check again because BytesRECV was updated
         if (cInfo->selFileSize - SI->BytesRECV < DATA_BUFSIZE)
         {
+            memset(SI->Buffer, 0, DATA_BUFSIZE);
             tempBufSize = cInfo->selFileSize - SI->BytesRECV;
         }
         SI->DataBuf.len = tempBufSize;

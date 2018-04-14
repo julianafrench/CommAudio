@@ -281,6 +281,7 @@ void MainWindow::clearPlaylist()
     ui->tableWidget->clear();
     fileNames.clear();
     fileSizes.clear();
+    ui->tableWidget->setHorizontalHeaderLabels(QStringList() << "File Name" << "File Size (B)");
 }
 
 DWORD WINAPI serverThread(LPVOID svrInfo)
