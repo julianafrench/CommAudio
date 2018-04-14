@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QFile>
 #include <QListWidget>
+#include <QMessageBox>
 #include "settingswindow.h"
 
 #define DEF_PORT 6000 //will not interfere with other modules
@@ -34,6 +35,9 @@ private:
     QTcpSocket* ioSocket;
     QString playlistToSend; //server only
     QString fileToTransfer; //server & client
+    bool transmitting = false;
+    long fileSize = 0;
+    QString nextFileToSend;
 
     void HandleConnect();
     void HandleDisconnect();
