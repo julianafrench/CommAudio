@@ -27,6 +27,9 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     QString loadPlaylist();
+    void displayPlaylistByRow(int row);
+    void displayFileSizeByRow(int row);
+    void clearPlaylist();
     QString getSelectedFile();
 
 private slots:
@@ -59,6 +62,8 @@ private:
     QThread streamingThread;
     MediaPlayerModule* mediaPlayer;
     TransferModule* transferer;
+    QStringList fileNames;
+    QStringList fileSizes;
 };
 
 #endif // MAINWINDOW_H
