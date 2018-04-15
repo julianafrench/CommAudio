@@ -1,17 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "server.h"
-#include "client.h"
 #include "helpwindow.h"
 #include "aboutwindow.h"
-using namespace commaudio;
 
-// Function declarations (not in mainwindow.h)
-DWORD WINAPI serverThread(LPVOID svrInfo);
-
-// Global variables
-ServerInfo *svrInfo;
-ClientInfo *clntInfo;
 bool connected = false;
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -21,12 +12,20 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     hostType = UNDEFINED;
 
+    // table widget setup
+    ui->tableWidget->setColumnCount(2);
+    ui->tableWidget->setColumnWidth(0, this->width() * 0.75);
+    ui->tableWidget->setColumnWidth(1, this->width() * 0.22);
+    ui->tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->tableWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    connect(ui->tableWidget, &QTableWidget::cellClicked, this, &MainWindow::UpdateSelectedFile);
+
     // settings setup
     settings = new SettingsWindow(parent);
     connect(settings, &QDialog::accepted, this, &MainWindow::UpdateSettings);
     connect(ui->menuAbout, &QMenu::aboutToHide, this, &MainWindow::on_actionAbout_triggered);
     connect(ui->menuHelp, &QMenu::aboutToHide, this, &MainWindow::on_actionHelp_triggered);
-    UpdateSettings();
+    connect(ui->FilePickerButton, &QPushButton::clicked, this, &MainWindow::ShowFilePicker);
 
     // streaming setup
     streamer = new StreamingModule;
@@ -41,11 +40,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(streamer, &StreamingModule::SenderStatusUpdated, this, &MainWindow::UpdateSenderStatus);
     connect(ui->StreamDisconnectButton, &QPushButton::clicked, streamer, &StreamingModule::AttemptStreamDisconnect);
     connect(streamer, &StreamingModule::ReceiverReady, this, &MainWindow::ToggleStreaming);
+    connect(streamer, &StreamingModule::WrongFileType, this, &MainWindow::AlertWrongFileType);
     ToggleStreaming(false);
 
     // media player setup
     mediaPlayer = new MediaPlayerModule;
-    connect(ui->FilePickerButton, &QPushButton::clicked, mediaPlayer, &MediaPlayerModule::ShowFilePicker);
+    mediaPlayer->settings = settings;
     connect(ui->PlayButton, &QPushButton::clicked, mediaPlayer, &MediaPlayerModule::Play);
     connect(ui->PauseButton, &QPushButton::clicked, mediaPlayer, &MediaPlayerModule::Pause);
     connect(ui->StopButton, &QPushButton::clicked, mediaPlayer, &MediaPlayerModule::Stop);
@@ -54,6 +54,62 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(mediaPlayer->player, &QMediaPlayer::durationChanged, this, &MainWindow::InitializeSongDuration);
     connect(mediaPlayer->player, &QMediaPlayer::positionChanged, this, &MainWindow::UpdateSongProgress);
     connect(ui->SongProgressSlider, &QSlider::sliderMoved, mediaPlayer, &MediaPlayerModule::ChangeSongPosition);
+
+    // file transferer setup
+    transferer = new TransferModule;
+    transferer->settings = settings;
+    connect(transferer, &TransferModule::Connected, this, &MainWindow::EnableDisconnect);
+    connect(transferer, &TransferModule::Disconnected, this, &MainWindow::EnableConnect);
+    connect(transferer, &TransferModule::ReceiverStatusUpdated, this, &MainWindow::UpdateReceiverStatus);
+    connect(transferer, &TransferModule::SenderStatusUpdated, this, &MainWindow::UpdateSenderStatus);
+    connect(transferer, &TransferModule::PlaylistReady, this, &MainWindow::UpdatePlaylist);
+    ui->actionConnect->setEnabled(true);
+    ui->actionDisconnect->setEnabled(false);
+}
+
+void MainWindow::UpdateSelectedFile(int row, int column)
+{
+    QString selectedFileName = ui->tableWidget->item(row, 0)->text();
+    ui->CurrentSongLineEdit->setText(selectedFileName);
+    settings->SetFileName(selectedFileName);
+}
+
+void MainWindow::UpdatePlaylist(QString updatedPlaylist)
+{
+    clearPlaylist();
+    if (updatedPlaylist != "")
+    {
+        QStringList fileInfo = updatedPlaylist.split("|");
+        fileNames = fileInfo[0].split(";");
+        fileSizes = fileInfo[1].split(";");
+        //clntInfo->songSizes = fileSizes;
+
+        for (int i = 0; i < fileNames.size(); i++)
+        {
+            ui->tableWidget->insertRow(i);
+            // display file name
+            displayPlaylistByRow(i);
+
+            // display file size
+            displayFileSizeByRow(i);
+        }
+        ui->tableWidget->setHorizontalHeaderLabels(QStringList() << "File Name" << "File Size (B)");
+    }
+    else
+    {
+        QMessageBox msgBox;
+        msgBox.setText("No audio files on server!");
+        msgBox.exec();
+    }
+}
+
+//cant have popups in non gui thread
+void MainWindow::AlertWrongFileType()
+{
+    QMessageBox popup;
+    popup.setText("Must select a .wav file for streaming!");
+    popup.exec();
+    return;
 }
 
 void MainWindow::UpdateSongProgress(qint64 position)
@@ -65,6 +121,18 @@ void MainWindow::UpdateSongProgress(qint64 position)
     QString secondsStr = QString("%1").arg(seconds, 2, 10, QChar('0'));
     ui->SongProgressLabel->setText(minutesStr + ":" + secondsStr);
     ui->SongProgressSlider->setValue(totalSecondsPlayed);
+}
+
+void MainWindow::EnableConnect()
+{
+    ui->actionConnect->setEnabled(true);
+    ui->actionDisconnect->setEnabled(false);
+}
+
+void MainWindow::EnableDisconnect()
+{
+    ui->actionDisconnect->setEnabled(true);
+    ui->actionConnect->setEnabled(false);
 }
 
 void MainWindow::InitializeSongDuration(qint64 duration_ms)
@@ -98,18 +166,10 @@ void MainWindow::ToggleStreaming(bool streamReady)
 
 MainWindow::~MainWindow()
 {
-    if (svrInfo != nullptr)
-    {
-        free(svrInfo);
-    }
-    if (clntInfo != nullptr)
-    {
-        free(clntInfo);
-    }
     streamingThread.quit();
     streamingThread.wait();
-    delete settings;
     //streamer is connected to delete once thread finished
+    delete settings;
     delete ui;
 }
 
@@ -119,123 +179,113 @@ void MainWindow::UpdateSettings()
         on_actionClient_triggered();
     if(settings->GetHostMode() == "Server")
         on_actionServer_triggered();
-    if(settings->GetTransferMode() == "microphone" || settings->GetTransferMode() == "streaming")
-    {
-        //mic will be enabled by speaker
-        ui->StartSpeakerButton->setEnabled(true);
-    }
-    else
-    {
-        ui->StartSpeakerButton->setEnabled(false);
-    }
-
-}
-
-void MainWindow::on_actionExit_triggered()
-{
-    close();
 }
 
 QString MainWindow::loadPlaylist()
 {
-    ui->listWidget->clear();
-
+    clearPlaylist();
+    QString fileStr = "";
     QDir directory(QDir::currentPath());
-    QStringList fileFilter("*.wav");
+    QStringList audioFileFilter;
+    audioFileFilter << "*.wav" << "*.mp3";
+    directory.setNameFilters(audioFileFilter);
+    fileNames = directory.entryList();
+    if (fileNames.size() == 0)
+    {
+        QMessageBox popup;
+        popup.setText("No audio files found in current directory!");
+        popup.exec();
+    }
+    for (int i = 0; i < fileNames.size(); i++)
+    {
+        ui->tableWidget->insertRow(i);
 
-    QStringList files = directory.entryList(fileFilter);
+        // display file name
+        displayPlaylistByRow(i);
 
-    ui->listWidget->addItems(files);
-    ui->listWidget->setCurrentRow(0);
+        // display file size
+        QFileInfo fInfo(fileNames[i]);
+        fileSizes.append(QString::number(fInfo.size()));
+        displayFileSizeByRow(i);
+    }
 
-    QString fileStr = files.join(";");
+    QString nameStr = fileNames.join(";");
+    QString sizeStr = fileSizes.join(";");
+    fileStr = nameStr + "|" + sizeStr;
 
+    ui->tableWidget->setHorizontalHeaderLabels(QStringList() << "File Name" << "File Size (B)");
     return fileStr;
+}
+
+void MainWindow::displayPlaylistByRow(int row)
+{
+    QTableWidgetItem *fName = new QTableWidgetItem;
+    fName->setText(fileNames[row]);
+    // disable editing
+    fName->setFlags(fName->flags() & ~Qt::ItemIsEditable);
+    ui->tableWidget->setItem(row, 0, fName);
+}
+
+void MainWindow::displayFileSizeByRow(int row)
+{
+    QTableWidgetItem *fSize = new QTableWidgetItem;
+    fSize->setText(fileSizes[row]);
+    fSize->setFlags(Qt::NoItemFlags);
+    ui->tableWidget->setItem(row, 1, fSize);
+}
+
+void MainWindow::clearPlaylist()
+{
+    ui->tableWidget->clear();
+    fileNames.clear();
+    fileSizes.clear();
+    ui->tableWidget->setHorizontalHeaderLabels(QStringList() << "File Name" << "File Size (B)");
 }
 
 void MainWindow::on_actionServer_triggered()
 {
     hostType = SERVER;
-    svrInfo = new ServerInfo();
 }
 
 void MainWindow::on_actionClient_triggered()
 {
     hostType = CLIENT;
-    clntInfo = new ClientInfo();
-    clntInfo->server_input = settings->GetIpAddress().toStdString().c_str();
 }
 
 void MainWindow::on_actionConnect_triggered()
 {
     if (hostType == SERVER)
     {
-        playlist = loadPlaylist();
-        svrInfo->songlist = playlist.toStdString();
-
-        // create server thread
-        DWORD svrThrdID;
-        if (CreateThread(NULL, 0, serverThread, (LPVOID)svrInfo, 0, &svrThrdID) == NULL)
-        {
-            qWarning() << "failed to create server thread";
-        }
+        QString playlistLine = loadPlaylist();
+        transferer->Connect(playlistLine);
         ui->actionConnect->setEnabled(false);
     }
     else if (hostType == CLIENT)
     {
-        if(Client::ClntConnect(clntInfo))
-        {
-            connected = true;
-            clntInfo->connected = &connected;
-            //qDebug("Clnt with socket " + clntInfo->sendSocket + " connected");
-            Client::ReceivePlaylist();
-            playlist = QString::fromStdString(clntInfo->songlist);
-
-            if (playlist != "")
-            {
-                ui->listWidget->addItems(playlist.split(";"));
-                ui->listWidget->setCurrentRow(0);
-            }
-            else
-            {
-                // warning dialog for no audio files found
-            }
-        }
+        transferer->Connect();
         ui->actionConnect->setEnabled(false);
     }
 }
 
-
-DWORD WINAPI serverThread(LPVOID svrInfo)
+void MainWindow::on_actionDisconnect_triggered()
 {
-    ServerInfo *sInfo = (ServerInfo *)svrInfo;
-    connected = Server::SvrConnect(sInfo);
-    qDebug() << "server connected";
-    sInfo->connected = &connected;
-    while (connected)
-    {
-        Server::AcceptNewEvent();
-    }
-    return TRUE;
-}
-
-QString MainWindow::getSelectedFile()
-{
-    if(ui->listWidget->count() != 0)
-    {
-        return ui->listWidget->currentItem()->text();
-    }
-    return "";
+    transferer->Disconnect();
 }
 
 void MainWindow::on_SaveButton_clicked()
 {
     if (hostType == CLIENT)
     {
-        QString filename = getSelectedFile();
-        if(Client::SendFilename(filename.toStdString()))
+        if (ui->tableWidget->rowCount() != 0)
         {
-            Client::ReceiveFileSetup();
+            QString filename = ui->tableWidget->currentItem()->text();
+            if (filename == "")
+            {
+                QMessageBox msgBox;
+                msgBox.setText("No audio file chosen!");
+                msgBox.exec();
+            }
+            transferer->SongSelected(filename);
         }
     }
 }
@@ -265,4 +315,12 @@ void MainWindow::UpdateReceiverStatus(QString msg)
 void MainWindow::UpdateSenderStatus(QString msg)
 {
     ui->SenderStatusLabel->setText(msg);
+}
+
+void MainWindow::ShowFilePicker()
+{
+    QString newFileName = QFileDialog::getOpenFileName((QWidget*)this->parent(),
+        tr("Choose another file to play/stream"), "", tr("(*.wav *.mp3)"));
+    ui->CurrentSongLineEdit->setText(newFileName);
+    settings->SetFileName(newFileName);
 }

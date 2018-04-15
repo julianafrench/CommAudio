@@ -6,6 +6,8 @@
 #include <QMediaContent>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QFile>
+#include "settingswindow.h"
 
 class MediaPlayerModule : public QObject
 {
@@ -14,19 +16,17 @@ public:
     explicit MediaPlayerModule(QObject *parent = nullptr);
     ~MediaPlayerModule();
     QMediaPlayer* player;
+    SettingsWindow* settings;
 
 signals:
 
 public slots:
-    void ShowFilePicker();
     void Play();
     void Pause();
     void Stop();
     void FastForward();
     void SlowForward();
     void ChangeSongPosition(int);
-private:
-    QString fileName = "";
 };
 
 #endif // MEDIAPLAYERMODULE_H

@@ -11,25 +11,25 @@ MediaPlayerModule::~MediaPlayerModule()
     delete player;
 }
 
-void MediaPlayerModule::ShowFilePicker()
-{
-    fileName = QFileDialog::getOpenFileName((QWidget*)this->parent(),
-        tr("Choose a file to stream"), "", tr("(*.wav *.mp3)"));
-}
-
 void MediaPlayerModule::Play()
 {
     if (player->state() == QMediaPlayer::StoppedState)
     {
-        player->setMedia(QUrl::fromLocalFile(fileName));
-        player->setPlaybackRate(1);
-    }
-    if (fileName == "")
-    {
-        QMessageBox msgBox;
-        msgBox.setText("Please select a file first.");
-        msgBox.exec();
-        return;
+        QString fileName = settings->GetFileName();
+        QFile fileReadCheck(fileName);
+        if (fileReadCheck.open(QIODevice::ReadOnly))
+        {
+            fileReadCheck.close();
+            player->setMedia(QUrl::fromLocalFile(fileName));
+            player->setPlaybackRate(1);
+        }
+        // file unopenable, assume not found
+        else
+        {
+            QMessageBox popup;
+            popup.setText("File not found in local directory:\n" + fileName);
+            popup.exec();
+        }
     }
     player->play();
 }
