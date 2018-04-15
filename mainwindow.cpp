@@ -273,12 +273,10 @@ void MainWindow::on_actionConnect_triggered()
     {
         QString playlistLine = loadPlaylist();        
         transferer->Connect(playlistLine);
-        ui->actionConnect->setEnabled(false);
     }
     else if (hostType == CLIENT)
     {
         transferer->Connect();
-        ui->actionConnect->setEnabled(false);
     }
 }
 

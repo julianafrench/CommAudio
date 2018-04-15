@@ -27,6 +27,12 @@ void TransferModule::Connect(QString playlist)
     }
     if (settings->GetHostMode() == "Server")
     {
+        playlistToSend = playlist;
+        if (playlistToSend.isEmpty())
+        {
+            emit SenderStatusUpdated("No audio to send");
+            return;
+        }
         if (receiver == nullptr)
             receiver = new QTcpServer;
         delete ioSocket;
@@ -37,17 +43,8 @@ void TransferModule::Connect(QString playlist)
         }
         else
         {
-            playlistToSend = playlist;
-            if (playlistToSend.isEmpty())
-            {
-                emit SenderStatusUpdated("No audio to send");
-                emit Disconnected();
-            }
-            else
-            {
-                emit SenderStatusUpdated("Server running");
-                emit Connected();
-            }
+            emit SenderStatusUpdated("Server running");
+            emit Connected();
 
         }
     }
