@@ -45,7 +45,7 @@ void TransferModule::Connect(QString playlist)
             }
             else
             {
-                emit SenderStatusUpdated("Server: running");
+                emit SenderStatusUpdated("Server running");
                 emit Connected();
             }
 
@@ -129,7 +129,7 @@ void TransferModule::ClientReceivedBytes()
         QFile file(fileToDownload);
         if(file.open(QIODevice::WriteOnly))
         {
-            emit ReceiverStatusUpdated("Client: connected & saving to file");
+            emit ReceiverStatusUpdated("Client connected; saving to file");
             QDataStream fileWriteStream(&file);
             QByteArray fileBytes = ioSocket->readAll();
             std::string hex = fileBytes.toStdString();
@@ -137,7 +137,7 @@ void TransferModule::ClientReceivedBytes()
             fileSize -= hex.length();
             file.close();
         } else {
-           emit ReceiverStatusUpdated("Client: failed to open file " + fileToDownload + ": " + file.errorString());
+           emit ReceiverStatusUpdated("Client failed to open file " + fileToDownload + ": " + file.errorString());
         }
     }
 }
@@ -177,9 +177,9 @@ void TransferModule::ServerReceivedBytes()
             QByteArray fileSizeBytes = fileSizeStr.toUtf8();
             QDataStream socketWriteStream(ioSocket);
             socketWriteStream << fileSizeBytes;
-            emit SenderStatusUpdated("Sender: connected & sending");
+            emit SenderStatusUpdated("Connected, sending");
         } else {
-            emit SenderStatusUpdated("Sender: failed to open file " + fileToSend + ": " + file.errorString());
+            emit SenderStatusUpdated("Failed to open file " + fileToSend + ": " + file.errorString());
         }
     }
     if (descriptor == "filesize")
@@ -197,9 +197,9 @@ void TransferModule::ServerReceivedBytes()
                 QByteArray fileBytes = descriptorBytes + file.readAll();
                 socketWriteStream << fileBytes;
                 file.close();
-                emit SenderStatusUpdated("Sender: connected & sending");
+                emit SenderStatusUpdated("Connected & sending");
             } else {
-               emit SenderStatusUpdated("Sender: failed to open file " + nextFileToSend + ": " + file.errorString());
+               emit SenderStatusUpdated("Failed to open file " + nextFileToSend + ": " + file.errorString());
             }
         }
     }
@@ -209,7 +209,7 @@ void TransferModule::ServerReceivedBytes()
 void TransferModule::ClientConnected()
 {
     ioSocket = receiver->nextPendingConnection();
-    emit ReceiverStatusUpdated("Server: a new client connected.");
+    emit ReceiverStatusUpdated("A new client connected");
     connect(ioSocket, &QTcpSocket::disconnected, this, &TransferModule::HandleDisconnect);
     connect(ioSocket, &QTcpSocket::readyRead, this, &TransferModule::ServerReceivedBytes);
     QString fileNames = "filelist";
