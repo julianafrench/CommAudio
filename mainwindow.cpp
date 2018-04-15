@@ -12,6 +12,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     hostType = UNDEFINED;
 
+    // table widget setup
+    ui->tableWidget->setColumnCount(2);
+    ui->tableWidget->setColumnWidth(0, this->width() * 0.75);
+    ui->tableWidget->setColumnWidth(1, this->width() * 0.2);
+    ui->tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+
     // settings setup
     settings = new SettingsWindow(parent);
     connect(settings, &QDialog::accepted, this, &MainWindow::UpdateSettings);
@@ -60,10 +66,24 @@ MainWindow::MainWindow(QWidget *parent) :
 
 void MainWindow::UpdatePlaylist(QString updatedPlaylist)
 {
+    clearPlaylist();
     if (updatedPlaylist != "")
     {
-        ui->listWidget->addItems(updatedPlaylist.split(";"));
-        ui->listWidget->setCurrentRow(0);
+        QStringList fileInfo = updatedPlaylist.split("|");
+        fileNames = fileInfo[0].split(";");
+        fileSizes = fileInfo[1].split(";");
+        //clntInfo->songSizes = fileSizes;
+
+        for (int i = 0; i < fileNames.size(); i++)
+        {
+            ui->tableWidget->insertRow(i);
+            // display file name
+            displayPlaylistByRow(i);
+
+            // display file size
+            displayFileSizeByRow(i);
+        }
+        ui->tableWidget->setHorizontalHeaderLabels(QStringList() << "File Name" << "File Size (B)");
     }
     else
     {
@@ -154,17 +174,59 @@ void MainWindow::UpdateSettings()
 
 QString MainWindow::loadPlaylist()
 {
-    ui->listWidget->clear();
+    //ui->listWidget->clear();
+    clearPlaylist();
+    QString fileStr = "";
     QDir directory(QDir::currentPath());
     QStringList audioFileFilter;
     audioFileFilter << "*.wav" << "*.mp3";
     directory.setNameFilters(audioFileFilter);
-    QStringList files = directory.entryList();
+    fileNames = directory.entryList();
 
-    ui->listWidget->addItems(files);
-    ui->listWidget->setCurrentRow(0);
+    for (int i = 0; i < fileNames.size(); i++)
+    {
+        ui->tableWidget->insertRow(i);
 
-    return files.join(";");
+        // display file name
+        displayPlaylistByRow(i);
+
+        // display file size
+        QFileInfo fInfo(fileNames[i]);
+        fileSizes.append(QString::number(fInfo.size()));
+        displayFileSizeByRow(i);
+    }
+
+    QString nameStr = fileNames.join(";");
+    QString sizeStr = fileSizes.join(";");
+    fileStr = nameStr + "|" + sizeStr;
+
+    ui->tableWidget->setHorizontalHeaderLabels(QStringList() << "File Name" << "File Size (B)");
+    return fileStr;
+}
+
+void MainWindow::displayPlaylistByRow(int row)
+{
+    QTableWidgetItem *fName = new QTableWidgetItem;
+    fName->setText(fileNames[row]);
+    // disable editing
+    fName->setFlags(fName->flags() & ~Qt::ItemIsEditable);
+    ui->tableWidget->setItem(row, 0, fName);
+}
+
+void MainWindow::displayFileSizeByRow(int row)
+{
+    QTableWidgetItem *fSize = new QTableWidgetItem;
+    fSize->setText(fileSizes[row]);
+    fSize->setFlags(Qt::NoItemFlags);
+    ui->tableWidget->setItem(row, 1, fSize);
+}
+
+void MainWindow::clearPlaylist()
+{
+    ui->tableWidget->clear();
+    fileNames.clear();
+    fileSizes.clear();
+    ui->tableWidget->setHorizontalHeaderLabels(QStringList() << "File Name" << "File Size (B)");
 }
 
 void MainWindow::on_actionServer_triggered()
@@ -201,9 +263,9 @@ void MainWindow::on_SaveButton_clicked()
 {
     if (hostType == CLIENT)
     {
-        if(ui->listWidget->count() != 0)
+        if (ui->tableWidget->rowCount() != 0)
         {
-            QString filename = ui->listWidget->currentItem()->text();
+            QString filename = ui->tableWidget->currentItem()->text();
             if (filename == "")
             {
                 QMessageBox msgBox;
