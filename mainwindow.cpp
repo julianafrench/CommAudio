@@ -40,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(streamer, &StreamingModule::SenderStatusUpdated, this, &MainWindow::UpdateSenderStatus);
     connect(ui->StreamDisconnectButton, &QPushButton::clicked, streamer, &StreamingModule::AttemptStreamDisconnect);
     connect(streamer, &StreamingModule::ReceiverReady, this, &MainWindow::ToggleStreaming);
+    connect(streamer, &StreamingModule::WrongFileType, this, &MainWindow::AlertWrongFileType);
     ToggleStreaming(false);
 
     // media player setup
@@ -102,6 +103,14 @@ void MainWindow::UpdatePlaylist(QString updatedPlaylist)
     }
 }
 
+//cant have popups in non gui thread
+void MainWindow::AlertWrongFileType()
+{
+    QMessageBox popup;
+    popup.setText("Must select a .wav file for streaming!");
+    popup.exec();
+    return;
+}
 
 void MainWindow::UpdateSongProgress(qint64 position)
 {

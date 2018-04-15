@@ -49,6 +49,7 @@ private slots:
     void UpdateSenderStatus(QString);
     void UpdateReceiverStatus(QString);
     void UpdateSettings();
+    void AlertWrongFileType();
 
     void ToggleStreaming(bool);
     void InitializeSongDuration(qint64);

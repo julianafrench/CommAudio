@@ -27,6 +27,16 @@ void StreamingModule::StartReceiver()
 {
     if (receiver->isListening())
         return;
+    //needs to make sure only .wav is used when streaming
+    if (settings->GetTransferMode() == "streaming")
+    {
+        QStringRef fileType = settings->GetFileName().rightRef(4);
+        if (fileType != ".wav")
+        {
+            emit WrongFileType();
+            return;
+        }
+    }
     int port = SERVER_PORT;
     if (settings->GetHostMode() == "Client")
         port = CLIENT_PORT;

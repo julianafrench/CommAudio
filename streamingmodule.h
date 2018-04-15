@@ -2,6 +2,7 @@
 #define STREAMINGMODULE_H
 
 #include <QTcpServer>
+#include <QMessageBox>
 #include "settingswindow.h"
 #include "iosocketpair.h"
 
@@ -17,6 +18,7 @@ signals:
     void SenderStatusUpdated(const QString&);
     void ReceiverStatusUpdated(const QString&);
     void ReceiverReady(bool);
+    void WrongFileType();
 
 public slots:
     void AttemptStreamConnect();
