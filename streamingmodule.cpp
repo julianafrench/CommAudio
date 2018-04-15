@@ -46,7 +46,7 @@ void StreamingModule::StartReceiver()
     }
     else
     {
-        emit ReceiverStatusUpdated("Receiver: running");
+        emit ReceiverStatusUpdated("Running");
         emit ReceiverReady(true);
     }
 }
@@ -89,15 +89,15 @@ void StreamingModule::AttemptStreamDisconnect()
     }
     receiver->close();
 
-    emit SenderStatusUpdated("Sender: disconnected");
-    emit ReceiverStatusUpdated("Receiver: disconnected");
+    emit SenderStatusUpdated("Disconnected");
+    emit ReceiverStatusUpdated("Disconnected");
     emit ReceiverReady(false);
     AlreadyDisconnecting = false;
 }
 
 void StreamingModule::ClientDisconnected()
 {
-    emit ReceiverStatusUpdated("Receiver: a client disconnected");
+    emit ReceiverStatusUpdated("A client disconnected");
     QTcpSocket* recvSocket = (QTcpSocket*)sender();
     RemoveSocketPair(recvSocket->peerAddress());
 }
@@ -107,7 +107,7 @@ void StreamingModule::ClientConnected()
     QTcpSocket* recvSocket = receiver->nextPendingConnection();
     connect(recvSocket, &QTcpSocket::disconnected, this, &StreamingModule::ClientDisconnected);
     connect(recvSocket, &QTcpSocket::readyRead, this, &StreamingModule::StartAudioOutput);
-    emit ReceiverStatusUpdated("Receiver: a client connected");
+    emit ReceiverStatusUpdated("A client connected");
     if (settings->GetHostMode() == "Client")
     {
         QMap<QHostAddress, IOSocketPair*>::iterator nonConstIt = connectionList.find(recvSocket->peerAddress());
@@ -124,7 +124,7 @@ void StreamingModule::ClientConnected()
         connect(newPair->sendSocket, &QTcpSocket::disconnected, this, &StreamingModule::ServerDisconnected);
         connect(newPair->sendSocket, QOverload<QTcpSocket::SocketError>::of(&QTcpSocket::error), this, &StreamingModule::GetSocketError);
         newPair->sendSocket->connectToHost(recvSocket->peerAddress(), CLIENT_PORT);
-        emit SenderStatusUpdated("Sender: now connecting back to new client");
+        emit SenderStatusUpdated("Now connecting to new client");
     }
 }
 
@@ -145,7 +145,7 @@ void StreamingModule::StartAudioInput()
     if (settings->GetTransferMode() == "microphone")
     {
         pair->input->start(sendSocket); //input is mic
-        emit SenderStatusUpdated("Sender: connected, start talking");
+        emit SenderStatusUpdated("Connected, say something to chat");
     }
     if (settings->GetTransferMode() == "streaming")
     {
@@ -158,17 +158,16 @@ void StreamingModule::StartAudioInput()
                 QByteArray fileBytes = fileToStream.readAll();
                 *(pair->sendStream) << fileBytes;
                 fileToStream.close();
-                emit SenderStatusUpdated("Sender: connected & sending");
+                emit SenderStatusUpdated("Connected; sending");
             } else {
-                emit SenderStatusUpdated("Sender: failed to open file " + filename + ": " + fileToStream.errorString());
+                emit SenderStatusUpdated("Failed to open file " + filename + ": " + fileToStream.errorString());
             }
         }
         if (settings->GetHostMode()== "Client")
         {
-            emit SenderStatusUpdated("Sender: connected, doesnt send");
+            emit SenderStatusUpdated("Connected, not sending yet");
         }
     }
-    // file doesnt do anything yet for client
 }
 
 void StreamingModule::RemoveSocketPair(QHostAddress destnIp)
@@ -181,18 +180,10 @@ void StreamingModule::RemoveSocketPair(QHostAddress destnIp)
 
 void StreamingModule::ServerDisconnected()
 {
-    emit ReceiverStatusUpdated("Receiver: a server disconnected");
-//    QTcpSocket* sendSocket = (QTcpSocket*)sender();
-//    QString port = FindPortBySender(sendSocket);
-//    RemoveSocketPair(port);
-//    if (ui->ClientServerModeComboBox->currentText() == "client")
-//    {
-//        AttemptDisconnection();
-//    }
+    emit ReceiverStatusUpdated("Server disconnected");
 }
 
 bool operator<(const QHostAddress l, const QHostAddress r)
 {
-//    QOverload<quint32>::of(&QHostAddress::toIPv4Address);
     return l.toIPv4Address() < r.toIPv4Address();
 }

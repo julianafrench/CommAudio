@@ -38,8 +38,17 @@ void TransferModule::Connect(QString playlist)
         else
         {
             playlistToSend = playlist;
-            emit SenderStatusUpdated("Receiver: running");
-            emit Connected();
+            if (playlistToSend.isEmpty())
+            {
+                emit SenderStatusUpdated("No audio to send");
+                emit Disconnected();
+            }
+            else
+            {
+                emit SenderStatusUpdated("Server: running");
+                emit Connected();
+            }
+
         }
     }
 }
@@ -55,6 +64,8 @@ void TransferModule::Disconnect()
         receiver->close();
     transmitting = false;
     emit Disconnected();
+    emit ReceiverStatusUpdated("Server has disconnected");
+    emit SenderStatusUpdated("");
 }
 
 void TransferModule::HandleConnect()
@@ -64,7 +75,7 @@ void TransferModule::HandleConnect()
 
 void TransferModule::HandleDisconnect()
 {
-    emit ReceiverStatusUpdated("Server: a client has disconnected");
+    emit ReceiverStatusUpdated("A client has disconnected");
     Disconnect();
     emit Disconnected();
 }

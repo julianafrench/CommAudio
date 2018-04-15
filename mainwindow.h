@@ -37,8 +37,6 @@ private slots:
     void on_actionConnect_triggered();
     void on_actionDisconnect_triggered();
     void on_actionSettings_triggered();
-    void on_actionHelp_triggered();
-    void on_actionAbout_triggered();
     void on_SaveButton_clicked();
     void EnableConnect();
     void EnableDisconnect();
