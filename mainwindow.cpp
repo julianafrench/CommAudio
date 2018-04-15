@@ -15,15 +15,17 @@ MainWindow::MainWindow(QWidget *parent) :
     // table widget setup
     ui->tableWidget->setColumnCount(2);
     ui->tableWidget->setColumnWidth(0, this->width() * 0.75);
-    ui->tableWidget->setColumnWidth(1, this->width() * 0.2);
+    ui->tableWidget->setColumnWidth(1, this->width() * 0.22);
     ui->tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->tableWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    connect(ui->tableWidget, &QTableWidget::cellClicked, this, &MainWindow::UpdateSelectedFile);
 
     // settings setup
     settings = new SettingsWindow(parent);
     connect(settings, &QDialog::accepted, this, &MainWindow::UpdateSettings);
     connect(ui->menuAbout, &QMenu::aboutToHide, this, &MainWindow::on_actionAbout_triggered);
     connect(ui->menuHelp, &QMenu::aboutToHide, this, &MainWindow::on_actionHelp_triggered);
-    UpdateSettings();
+    connect(ui->FilePickerButton, &QPushButton::clicked, this, &MainWindow::ShowFilePicker);
 
     // streaming setup
     streamer = new StreamingModule;
@@ -42,7 +44,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // media player setup
     mediaPlayer = new MediaPlayerModule;
-    connect(ui->FilePickerButton, &QPushButton::clicked, mediaPlayer, &MediaPlayerModule::ShowFilePicker);
+    mediaPlayer->settings = settings;
     connect(ui->PlayButton, &QPushButton::clicked, mediaPlayer, &MediaPlayerModule::Play);
     connect(ui->PauseButton, &QPushButton::clicked, mediaPlayer, &MediaPlayerModule::Pause);
     connect(ui->StopButton, &QPushButton::clicked, mediaPlayer, &MediaPlayerModule::Stop);
@@ -62,6 +64,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(transferer, &TransferModule::PlaylistReady, this, &MainWindow::UpdatePlaylist);
     ui->actionConnect->setEnabled(true);
     ui->actionDisconnect->setEnabled(false);
+}
+
+void MainWindow::UpdateSelectedFile(int row, int column)
+{
+    QString selectedFileName = ui->tableWidget->item(row, 0)->text();
+    ui->CurrentSongLineEdit->setText(selectedFileName);
+    settings->SetFileName(selectedFileName);
 }
 
 void MainWindow::UpdatePlaylist(QString updatedPlaylist)
@@ -136,13 +145,13 @@ void MainWindow::ToggleStreaming(bool streamReady)
         ui->StartSpeakerButton->setEnabled(false);
         if (settings->GetHostMode() == "Client")
             ui->StartMicButton->setEnabled(true);
-//        ui->StreamDisconnectButton->setEnabled(true);
+        ui->StreamDisconnectButton->setEnabled(true);
     }
     else
     {
         ui->StartSpeakerButton->setEnabled(true);
         ui->StartMicButton->setEnabled(false);
-//        ui->StreamDisconnectButton->setEnabled(false);
+        ui->StreamDisconnectButton->setEnabled(false);
     }
 }
 
@@ -161,20 +170,10 @@ void MainWindow::UpdateSettings()
         on_actionClient_triggered();
     if(settings->GetHostMode() == "Server")
         on_actionServer_triggered();
-    if(settings->GetTransferMode() == "microphone" || settings->GetTransferMode() == "streaming")
-    {
-        //mic will be enabled by speaker
-        ui->StartSpeakerButton->setEnabled(true);
-    }
-    if (settings->GetTransferMode() == "file transfer")
-    {
-        ui->StartSpeakerButton->setEnabled(false);
-    }
 }
 
 QString MainWindow::loadPlaylist()
 {
-    //ui->listWidget->clear();
     clearPlaylist();
     QString fileStr = "";
     QDir directory(QDir::currentPath());
@@ -182,7 +181,12 @@ QString MainWindow::loadPlaylist()
     audioFileFilter << "*.wav" << "*.mp3";
     directory.setNameFilters(audioFileFilter);
     fileNames = directory.entryList();
-
+    if (fileNames.size() == 0)
+    {
+        QMessageBox popup;
+        popup.setText("No audio files found in current directory!");
+        popup.exec();
+    }
     for (int i = 0; i < fileNames.size(); i++)
     {
         ui->tableWidget->insertRow(i);
@@ -302,4 +306,12 @@ void MainWindow::UpdateReceiverStatus(QString msg)
 void MainWindow::UpdateSenderStatus(QString msg)
 {
     ui->SenderStatusLabel->setText(msg);
+}
+
+void MainWindow::ShowFilePicker()
+{
+    QString newFileName = QFileDialog::getOpenFileName((QWidget*)this->parent(),
+        tr("Choose another file to play/stream"), "", tr("(*.wav *.mp3)"));
+    ui->CurrentSongLineEdit->setText(newFileName);
+    settings->SetFileName(newFileName);
 }

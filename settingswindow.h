@@ -20,13 +20,13 @@ public:
     QString GetHostMode();
     QString GetTransferMode();
     QString GetIpAddress();
-    QString GetBroadcastMode();
     QString GetFileName();
-    void ShowFilePicker();
+    void SetFileName(QString);
 
 private:
     void ToggleClientServerUi(QString ignoreThis = "");
     Ui::SettingsWindow* ui;
+    QString selectedFileName = "";
 
 };
 

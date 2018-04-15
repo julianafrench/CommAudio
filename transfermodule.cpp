@@ -64,6 +64,7 @@ void TransferModule::HandleConnect()
 
 void TransferModule::HandleDisconnect()
 {
+    emit ReceiverStatusUpdated("Server: a client has disconnected");
     Disconnect();
     emit Disconnected();
 }

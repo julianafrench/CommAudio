@@ -30,7 +30,6 @@ public:
     void displayPlaylistByRow(int row);
     void displayFileSizeByRow(int row);
     void clearPlaylist();
-    QString getSelectedFile();
 
 private slots:
     void on_actionServer_triggered();
@@ -44,6 +43,8 @@ private slots:
     void EnableConnect();
     void EnableDisconnect();
     void UpdatePlaylist(QString);
+    void UpdateSelectedFile(int, int);
+    void ShowFilePicker();
 
     void UpdateSenderStatus(QString);
     void UpdateReceiverStatus(QString);
