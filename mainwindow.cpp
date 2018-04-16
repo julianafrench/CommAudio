@@ -37,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->StreamDisconnectButton, &QPushButton::clicked, streamer, &StreamingModule::AttemptStreamDisconnect);
     connect(streamer, &StreamingModule::ReceiverReady, this, &MainWindow::ToggleStreaming);
     connect(streamer, &StreamingModule::WrongFileType, this, &MainWindow::AlertWrongFileType);
+    connect(ui->MulticastButton, &QPushButton::clicked, streamer, &StreamingModule::MulticastAudioInput);
     UpdateSettings();
 
     // media player setup
@@ -174,12 +175,14 @@ void MainWindow::UpdateSettings()
 {
     if(settings->GetHostMode() == "Client")
     {
-        on_actionClient_triggered();
+        //on_actionClient_triggered();
+        hostType = CLIENT;
     }
 
     if(settings->GetHostMode() == "Server")
     {
-        on_actionServer_triggered();
+        //on_actionServer_triggered();
+        hostType = SERVER;
     }
 
     if (settings->GetTransferMode() == "file transfer")
@@ -192,7 +195,14 @@ void MainWindow::UpdateSettings()
     {
         ui->StartSpeakerButton->setEnabled(true);
     }
-
+    if (settings->GetTransferMode() == "multicast" && settings->GetHostMode() == "Server")
+    {
+        ui->MulticastButton->setEnabled(true);
+    }
+    else
+    {
+        ui->MulticastButton->setDisabled(true);
+    }
 }
 
 QString MainWindow::loadPlaylist()
@@ -255,16 +265,6 @@ void MainWindow::clearPlaylist()
     fileNames.clear();
     fileSizes.clear();
     ui->tableWidget->setHorizontalHeaderLabels(QStringList() << "File Name" << "File Size (B)");
-}
-
-void MainWindow::on_actionServer_triggered()
-{
-    hostType = SERVER;
-}
-
-void MainWindow::on_actionClient_triggered()
-{
-    hostType = CLIENT;
 }
 
 void MainWindow::on_actionConnect_triggered()

@@ -28,7 +28,7 @@ void StreamingModule::StartReceiver()
     if (receiver->isListening())
         return;
     //needs to make sure only .wav is used when streaming
-    if (settings->GetTransferMode() == "streaming" && settings->GetHostMode() == "Server")
+    if ((settings->GetTransferMode() == "streaming" || settings->GetTransferMode() == "multicast") && settings->GetHostMode() == "Server")
     {
         QStringRef fileType = settings->GetFileName().rightRef(4);
         if (fileType != ".wav")
@@ -83,8 +83,7 @@ void StreamingModule::AttemptStreamDisconnect()
     for(auto it = connectionList.begin(); it != connectionList.end();)
     {
         IOSocketPair* clientPair = it.value();
-        clientPair->output->stop();
-        delete clientPair;
+        clientPair->deleteLater();
         it = connectionList.erase(it);
     }
     receiver->close();
@@ -133,6 +132,12 @@ void StreamingModule::StartAudioOutput()
     QTcpSocket* recvSocket = (QTcpSocket*)sender();
     IOSocketPair* pair = connectionList.value(recvSocket->peerAddress(), nullptr);
     //since pair is pointer, should be updated now
+    emit ReceiverStatusUpdated("Received audio, speaker playing");
+    if (pair == nullptr)
+    {
+        qDebug() << "pair null now";
+        return;
+    }
     if (pair->output->state() == QAudio::IdleState || pair->output->state() == QAudio::StoppedState)
         pair->output->start(recvSocket); //output is a speaker and always will be
 }
@@ -165,7 +170,39 @@ void StreamingModule::StartAudioInput()
         }
         if (settings->GetHostMode()== "Client")
         {
-            emit SenderStatusUpdated("Connected, not sending yet");
+            emit SenderStatusUpdated("Connected.");
+        }
+    }
+    if (settings->GetTransferMode() == "multicast" && settings->GetHostMode() == "Client")
+    {
+        emit SenderStatusUpdated("Connected.");
+    }
+}
+
+void StreamingModule::MulticastAudioInput()
+{
+    if(settings->GetHostMode() == "Server")
+    {
+        QString filename = settings->GetFileName();
+        QFile fileToStream(filename);
+        if (fileToStream.open(QIODevice::ReadOnly))
+        {
+            emit SenderStatusUpdated("Connected; sending");
+            fileToStream.close();
+        }
+        else
+        {
+            emit SenderStatusUpdated("Failed to open file " + filename + ": " + fileToStream.errorString());
+            return;
+        }
+
+        for (auto it = connectionList.begin(); it != connectionList.end(); ++it)
+        {
+            IOSocketPair* clientPair = it.value();
+            fileToStream.open(QIODevice::ReadOnly);
+            QByteArray fileBytes = fileToStream.readAll();
+            *(clientPair->sendStream) << fileBytes;
+            fileToStream.close();
         }
     }
 }

@@ -24,6 +24,7 @@ public slots:
     void AttemptStreamConnect();
     void AttemptStreamDisconnect();
     void StartReceiver();
+    void MulticastAudioInput();
 
 private:
     QAudioFormat* format;

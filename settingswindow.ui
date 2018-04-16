@@ -133,6 +133,11 @@
         <string>streaming</string>
        </property>
       </item>
+      <item>
+       <property name="text">
+        <string>multicast</string>
+       </property>
+      </item>
      </widget>
     </item>
    </layout>
