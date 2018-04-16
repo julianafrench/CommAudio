@@ -28,7 +28,7 @@ void StreamingModule::StartReceiver()
     if (receiver->isListening())
         return;
     //needs to make sure only .wav is used when streaming
-    if (settings->GetTransferMode() == "streaming" && settings->GetHostMode() == "Server")
+    if ((settings->GetTransferMode() == "streaming" || settings->GetTransferMode() == "multicast") && settings->GetHostMode() == "Server")
     {
         QStringRef fileType = settings->GetFileName().rightRef(4);
         if (fileType != ".wav")
@@ -170,12 +170,12 @@ void StreamingModule::StartAudioInput()
         }
         if (settings->GetHostMode()== "Client")
         {
-            emit SenderStatusUpdated("Connected, not sending yet");
+            emit SenderStatusUpdated("Connected.");
         }
     }
     if (settings->GetTransferMode() == "multicast" && settings->GetHostMode() == "Client")
     {
-        emit SenderStatusUpdated("Connected, not sending yet");
+        emit SenderStatusUpdated("Connected.");
     }
 }
 
