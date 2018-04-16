@@ -28,8 +28,6 @@ SOURCES += \
         mainwindow.cpp \
     settingswindow.cpp \
     streamingmodule.cpp \
-    helpwindow.cpp \
-    aboutwindow.cpp \
     iosocketpair.cpp \
     mediaplayermodule.cpp \
     transfermodule.cpp
@@ -38,14 +36,10 @@ HEADERS += \
         mainwindow.h \
     settingswindow.h \
     streamingmodule.h \
-    helpwindow.h \
-    aboutwindow.h \
     iosocketpair.h \
     mediaplayermodule.h \
     transfermodule.h
 
 FORMS += \
         mainwindow.ui \
-    settingswindow.ui \
-    helpwindow.ui \
-    aboutwindow.ui
+    settingswindow.ui
