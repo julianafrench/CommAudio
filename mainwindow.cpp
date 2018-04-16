@@ -37,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->StreamDisconnectButton, &QPushButton::clicked, streamer, &StreamingModule::AttemptStreamDisconnect);
     connect(streamer, &StreamingModule::ReceiverReady, this, &MainWindow::ToggleStreaming);
     connect(streamer, &StreamingModule::WrongFileType, this, &MainWindow::AlertWrongFileType);
+    connect(ui->MulticastButton, &QPushButton::clicked, streamer, &StreamingModule::MulticastAudioInput);
     UpdateSettings();
 
     // media player setup
@@ -308,11 +309,6 @@ void MainWindow::on_SaveButton_clicked()
             transferer->SongSelected(filename);
         }
     }
-}
-
-void MainWindow::on_MulticastButton_clicked()
-{
-    streamer->MulticastAudioInput();
 }
 
 void MainWindow::on_actionSettings_triggered()

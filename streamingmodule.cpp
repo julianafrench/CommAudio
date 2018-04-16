@@ -168,6 +168,10 @@ void StreamingModule::StartAudioInput()
             emit SenderStatusUpdated("Connected, not sending yet");
         }
     }
+    if (settings->GetTransferMode() == "multicast" && settings->GetHostMode() == "Client")
+    {
+        emit SenderStatusUpdated("Connected, not sending yet");
+    }
 }
 
 void StreamingModule::MulticastAudioInput()
