@@ -83,7 +83,7 @@ void StreamingModule::AttemptStreamDisconnect()
     for(auto it = connectionList.begin(); it != connectionList.end();)
     {
         IOSocketPair* clientPair = it.value();
-        clientPair->output->stop();
+        //clientPair->output->stop();
         delete clientPair;
         it = connectionList.erase(it);
     }
@@ -167,6 +167,33 @@ void StreamingModule::StartAudioInput()
         {
             emit SenderStatusUpdated("Connected, not sending yet");
         }
+    }
+}
+
+void StreamingModule::MulticastAudioInput()
+{
+    if(settings->GetHostMode() == "Server")
+    {
+        QString filename = settings->GetFileName();
+        QFile fileToStream(filename);
+        if (fileToStream.open(QIODevice::ReadOnly))
+        {
+            emit SenderStatusUpdated("Connected; sending");
+        }
+        else
+        {
+            emit SenderStatusUpdated("Failed to open file " + filename + ": " + fileToStream.errorString());
+            return;
+        }
+
+        for (auto it = connectionList.begin(); it != connectionList.end();)
+        {
+            IOSocketPair* clientPair = it.value();
+
+            QByteArray fileBytes = fileToStream.readAll();
+            *(clientPair->sendStream) << fileBytes;
+        }
+        fileToStream.close();
     }
 }
 

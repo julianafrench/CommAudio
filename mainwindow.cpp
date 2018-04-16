@@ -192,7 +192,14 @@ void MainWindow::UpdateSettings()
     {
         ui->StartSpeakerButton->setEnabled(true);
     }
-
+    if (settings->GetTransferMode() == "multicast" && settings->GetHostMode() == "Server")
+    {
+        ui->MulticastButton->setEnabled(true);
+    }
+    else
+    {
+        ui->MulticastButton->setDisabled(true);
+    }
 }
 
 QString MainWindow::loadPlaylist()
@@ -301,6 +308,11 @@ void MainWindow::on_SaveButton_clicked()
             transferer->SongSelected(filename);
         }
     }
+}
+
+void MainWindow::on_MulticastButton_clicked()
+{
+    streamer->MulticastAudioInput();
 }
 
 void MainWindow::on_actionSettings_triggered()

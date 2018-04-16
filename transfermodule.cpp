@@ -73,8 +73,13 @@ void TransferModule::HandleConnect()
 void TransferModule::HandleDisconnect()
 {
     emit ReceiverStatusUpdated("A client has disconnected");
-    Disconnect();
-    emit Disconnected();
+    if (ioSocket)
+    {
+        ioSocket->close();
+        ioSocket->deleteLater();
+    }
+    //Disconnect();
+    //emit Disconnected();
 }
 
 void TransferModule::ClientReceivedBytes()

@@ -38,6 +38,7 @@ private slots:
     void on_actionDisconnect_triggered();
     void on_actionSettings_triggered();
     void on_SaveButton_clicked();
+    void on_MulticastButton_clicked();
     void EnableConnect();
     void EnableDisconnect();
     void UpdatePlaylist(QString);

@@ -19,6 +19,7 @@ IOSocketPair::~IOSocketPair()
     output->stop();
     if (sendSocket != nullptr)
     {
+        sendSocket->readAll();
         sendSocket->disconnect();
         sendSocket->disconnectFromHost();
         sendSocket->deleteLater();
@@ -26,6 +27,7 @@ IOSocketPair::~IOSocketPair()
     }
     if (recvSocket != nullptr)
     {
+        recvSocket->readAll();
         recvSocket->deleteLater();
     }
     if (sendStream != nullptr)
