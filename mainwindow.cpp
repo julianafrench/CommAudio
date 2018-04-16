@@ -16,7 +16,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableWidget->setColumnWidth(1, this->width() * 0.22);
     ui->tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->tableWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    connect(ui->tableWidget, &QTableWidget::cellChanged, this, &MainWindow::UpdateSelectedFile);
+    connect(ui->tableWidget, &QTableWidget::cellClicked, this, &MainWindow::UpdateSelectedFile);
 
     // settings setup
     settings = new SettingsWindow(parent);
