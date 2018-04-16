@@ -83,8 +83,7 @@ void StreamingModule::AttemptStreamDisconnect()
     for(auto it = connectionList.begin(); it != connectionList.end();)
     {
         IOSocketPair* clientPair = it.value();
-        //clientPair->output->stop();
-        delete clientPair;
+        clientPair->deleteLater();
         it = connectionList.erase(it);
     }
     receiver->close();
@@ -134,6 +133,11 @@ void StreamingModule::StartAudioOutput()
     IOSocketPair* pair = connectionList.value(recvSocket->peerAddress(), nullptr);
     //since pair is pointer, should be updated now
     emit ReceiverStatusUpdated("Received audio, speaker playing");
+    if (pair == nullptr)
+    {
+        qDebug() << "pair null now";
+        return;
+    }
     if (pair->output->state() == QAudio::IdleState || pair->output->state() == QAudio::StoppedState)
         pair->output->start(recvSocket); //output is a speaker and always will be
 }
