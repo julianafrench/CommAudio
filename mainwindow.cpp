@@ -1,8 +1,43 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+/******************************************************************************
+ * SOURCE FILE:
+ *
+ * PROGRAM:
+ *
+ * FUNCTIONS:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 bool connected = false;
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -64,6 +99,24 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->actionDisconnect->setEnabled(false);
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 void MainWindow::UpdateSelectedFile(int row, int column)
 {
     column = 0;
@@ -72,6 +125,24 @@ void MainWindow::UpdateSelectedFile(int row, int column)
     settings->SetFileName(selectedFileName);
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 void MainWindow::UpdatePlaylist(QString updatedPlaylist)
 {
     clearPlaylist();
@@ -101,7 +172,24 @@ void MainWindow::UpdatePlaylist(QString updatedPlaylist)
     }
 }
 
-//cant have popups in non gui thread
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 void MainWindow::AlertWrongFileType()
 {
     QMessageBox popup;
@@ -110,6 +198,24 @@ void MainWindow::AlertWrongFileType()
     return;
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 void MainWindow::UpdateSongProgress(qint64 position)
 {
     qint64 totalSecondsPlayed = position / 1000;
@@ -121,18 +227,72 @@ void MainWindow::UpdateSongProgress(qint64 position)
     ui->SongProgressSlider->setValue(totalSecondsPlayed);
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 void MainWindow::EnableConnect()
 {
     ui->actionConnect->setEnabled(true);
     ui->actionDisconnect->setEnabled(false);
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 void MainWindow::EnableDisconnect()
 {
     ui->actionDisconnect->setEnabled(true);
     ui->actionConnect->setEnabled(false);
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 void MainWindow::InitializeSongDuration(qint64 duration_ms)
 {
     qint64 totalSeconds = duration_ms / 1000;
@@ -145,6 +305,24 @@ void MainWindow::InitializeSongDuration(qint64 duration_ms)
     ui->SongProgressLabel->setText("00:00");
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 void MainWindow::ToggleStreaming(bool streamReady)
 {
     if (streamReady) //receiver set up, unconnected, allow 2 connect
@@ -162,6 +340,24 @@ void MainWindow::ToggleStreaming(bool streamReady)
     }
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 MainWindow::~MainWindow()
 {
     streamingThread.quit();
@@ -171,6 +367,24 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 void MainWindow::UpdateSettings()
 {
     if(settings->GetHostMode() == "Client")
@@ -203,6 +417,24 @@ void MainWindow::UpdateSettings()
     }
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 QString MainWindow::loadPlaylist()
 {
     clearPlaylist();
@@ -240,6 +472,24 @@ QString MainWindow::loadPlaylist()
     return fileStr;
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 void MainWindow::displayPlaylistByRow(int row)
 {
     QTableWidgetItem *fName = new QTableWidgetItem;
@@ -249,6 +499,24 @@ void MainWindow::displayPlaylistByRow(int row)
     ui->tableWidget->setItem(row, 0, fName);
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 void MainWindow::displayFileSizeByRow(int row)
 {
     QTableWidgetItem *fSize = new QTableWidgetItem;
@@ -257,6 +525,24 @@ void MainWindow::displayFileSizeByRow(int row)
     ui->tableWidget->setItem(row, 1, fSize);
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 void MainWindow::clearPlaylist()
 {
     ui->tableWidget->setRowCount(0);
@@ -265,16 +551,70 @@ void MainWindow::clearPlaylist()
     ui->tableWidget->setHorizontalHeaderLabels(QStringList() << "File Name" << "File Size (B)");
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 void MainWindow::on_actionServer_triggered()
 {
     hostType = SERVER;
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 void MainWindow::on_actionClient_triggered()
 {
     hostType = CLIENT;
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 void MainWindow::on_actionConnect_triggered()
 {
     if (hostType == SERVER)
@@ -288,11 +628,47 @@ void MainWindow::on_actionConnect_triggered()
     }
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 void MainWindow::on_actionDisconnect_triggered()
 {
     transferer->Disconnect();
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 void MainWindow::on_SaveButton_clicked()
 {
     if (hostType == CLIENT)
@@ -311,21 +687,93 @@ void MainWindow::on_SaveButton_clicked()
     }
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 void MainWindow::on_actionSettings_triggered()
 {
     settings->exec();
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 void MainWindow::UpdateReceiverStatus(QString msg)
 {
     ui->ReceiverStatusLabel->setText(msg);
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 void MainWindow::UpdateSenderStatus(QString msg)
 {
     ui->SenderStatusLabel->setText(msg);
 }
 
+/******************************************************************************
+ * FUNCTION:
+ *
+ * DATE:
+ *
+ * REVISIONS:
+ *
+ * DESIGNER:
+ *
+ * PROGRAMMER:
+ *
+ * INTERFACE:
+ *
+ * RETURNS:
+ *
+ * NOTES:
+ *
+ ******************************************************************************/
 void MainWindow::ShowFilePicker()
 {
     QString newFileName = QFileDialog::getOpenFileName((QWidget*)this->parent(),
