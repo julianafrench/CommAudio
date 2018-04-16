@@ -133,6 +133,7 @@ void StreamingModule::StartAudioOutput()
     QTcpSocket* recvSocket = (QTcpSocket*)sender();
     IOSocketPair* pair = connectionList.value(recvSocket->peerAddress(), nullptr);
     //since pair is pointer, should be updated now
+    emit ReceiverStatusUpdated("Received audio, speaker playing");
     if (pair->output->state() == QAudio::IdleState || pair->output->state() == QAudio::StoppedState)
         pair->output->start(recvSocket); //output is a speaker and always will be
 }
@@ -183,6 +184,7 @@ void StreamingModule::MulticastAudioInput()
         if (fileToStream.open(QIODevice::ReadOnly))
         {
             emit SenderStatusUpdated("Connected; sending");
+            fileToStream.close();
         }
         else
         {
@@ -190,14 +192,14 @@ void StreamingModule::MulticastAudioInput()
             return;
         }
 
-        for (auto it = connectionList.begin(); it != connectionList.end();)
+        for (auto it = connectionList.begin(); it != connectionList.end(); ++it)
         {
             IOSocketPair* clientPair = it.value();
-
+            fileToStream.open(QIODevice::ReadOnly);
             QByteArray fileBytes = fileToStream.readAll();
             *(clientPair->sendStream) << fileBytes;
+            fileToStream.close();
         }
-        fileToStream.close();
     }
 }
 
