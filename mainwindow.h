@@ -32,8 +32,6 @@ public:
     void clearPlaylist();
 
 private slots:
-    void on_actionServer_triggered();
-    void on_actionClient_triggered();
     void on_actionConnect_triggered();
     void on_actionDisconnect_triggered();
     void on_actionSettings_triggered();

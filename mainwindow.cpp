@@ -175,12 +175,14 @@ void MainWindow::UpdateSettings()
 {
     if(settings->GetHostMode() == "Client")
     {
-        on_actionClient_triggered();
+        //on_actionClient_triggered();
+        hostType = CLIENT;
     }
 
     if(settings->GetHostMode() == "Server")
     {
-        on_actionServer_triggered();
+        //on_actionServer_triggered();
+        hostType = SERVER;
     }
 
     if (settings->GetTransferMode() == "file transfer")
@@ -263,16 +265,6 @@ void MainWindow::clearPlaylist()
     fileNames.clear();
     fileSizes.clear();
     ui->tableWidget->setHorizontalHeaderLabels(QStringList() << "File Name" << "File Size (B)");
-}
-
-void MainWindow::on_actionServer_triggered()
-{
-    hostType = SERVER;
-}
-
-void MainWindow::on_actionClient_triggered()
-{
-    hostType = CLIENT;
 }
 
 void MainWindow::on_actionConnect_triggered()
