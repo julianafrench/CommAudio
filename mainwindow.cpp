@@ -409,14 +409,14 @@ void MainWindow::UpdateSettings()
 {
     if(settings->GetHostMode() == "Client")
     {
-        //on_actionClient_triggered();
-        hostType = CLIENT;
+        on_actionClient_triggered();
+        //hostType = CLIENT;
     }
 
     if(settings->GetHostMode() == "Server")
     {
-        //on_actionServer_triggered();
-        hostType = SERVER;
+        on_actionServer_triggered();
+        //hostType = SERVER;
     }
 
     if (settings->GetTransferMode() == "file transfer")
