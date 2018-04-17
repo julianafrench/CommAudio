@@ -34,9 +34,9 @@
  *
  * DATE:      April 16 2018
  *
- * DESIGNER:  Luke Lee, Vafa Dehghan Saei, Alex Xia, Julianna French
+ * DESIGNER:  Luke Lee, Vafa Dehghan Saei, Alex Xia, Juliana French
  *
- * PROGRAMMER:Luke Lee, Vafa Dehghan Saei, Alex Xia, Julianna French
+ * PROGRAMMER:Luke Lee, Vafa Dehghan Saei, Alex Xia, Juliana French
  *
  * NOTES:     This file will draw the main window and initialize the main functions
  *
@@ -49,9 +49,9 @@ bool connected = false;
  * DATE:        April 16 2018
  *
  *
- * DESIGNER:    Vafa Dehghan Saei, Julianna French, Luke Lee, Alex Xia
+ * DESIGNER:    Vafa Dehghan Saei, Juliana French, Luke Lee, Alex Xia
  *
- * PROGRAMMER:  Vafa Dehghan Saei, Julianna French, Luke Lee, Alex Xia
+ * PROGRAMMER:  Vafa Dehghan Saei, Juliana French, Luke Lee, Alex Xia
  *
  * INTERFACE:   MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
  *
@@ -227,9 +227,9 @@ void MainWindow::AlertWrongFileType()
  * DATE:          April 16 2018
  *
  *
- * DESIGNER:      Julianna French
+ * DESIGNER:      Juliana French
  *
- * PROGRAMMER:    Julianna French
+ * PROGRAMMER:    Juliana French
  *
  * INTERFACE:     void MainWindow::UpdateSongProgress(qint64 position)
  *                    qint64 position: The position of the song
@@ -332,9 +332,9 @@ void MainWindow::InitializeSongDuration(qint64 duration_ms)
  * DATE:              April 16 2018
  *
  *
- * DESIGNER:          Julianna French
+ * DESIGNER:          Juliana French
  *
- * PROGRAMMER:        Julianna French
+ * PROGRAMMER:        Juliana French
  *
  * INTERFACE:         void MainWindow::ToggleStreaming(bool streamReady)
  *                        bool streamReady: A boolean that represent if the stream is ready or not
@@ -409,12 +409,14 @@ void MainWindow::UpdateSettings()
 {
     if(settings->GetHostMode() == "Client")
     {
-        on_actionClient_triggered();
+        //on_actionClient_triggered();
+        hostType = CLIENT;
     }
 
     if(settings->GetHostMode() == "Server")
     {
-        on_actionServer_triggered();
+        //on_actionServer_triggered();
+        hostType = SERVER;
     }
 
     if (settings->GetTransferMode() == "file transfer")
@@ -524,9 +526,9 @@ void MainWindow::displayPlaylistByRow(int row)
  * DATE:              April 16 2018
  *
  *
- * DESIGNER:          Julianna French
+ * DESIGNER:          Juliana French
  *
- * PROGRAMMER:        Julianna French
+ * PROGRAMMER:        Juliana French
  *
  * INTERFACE:         void MainWindow::displayFileSizeByRow(int row)
  *                          int row: the row to add the file size.
@@ -569,15 +571,16 @@ void MainWindow::clearPlaylist()
     ui->tableWidget->setHorizontalHeaderLabels(QStringList() << "File Name" << "File Size (B)");
 }
 
+
 /******************************************************************************
  * FUNCTION:        on_actionServer_triggered
  *
  * DATE:            April 16 2018
  *
  *
- * DESIGNER:        Julianna French.
+ * DESIGNER:        Juliana French.
  *
- * PROGRAMMER:      Julianna French
+ * PROGRAMMER:      Juliana French
  *
  * INTERFACE:       void MainWindow::on_actionServer_triggered()
  *
@@ -597,9 +600,9 @@ void MainWindow::on_actionServer_triggered()
  * DATE:            April 16 2018
  *
  *
- * DESIGNER:        Julianna French.
+ * DESIGNER:        Juliana French.
  *
- * PROGRAMMER:      Julianna French
+ * PROGRAMMER:      Juliana French
  *
  * INTERFACE:       void MainWindow::on_actionClient_triggered()
  *
@@ -671,9 +674,9 @@ void MainWindow::on_actionDisconnect_triggered()
  * DATE:            April 16 2018
  *
  *
- * DESIGNER:        Vafa Dehghan Saei, Julianna French
+ * DESIGNER:        Vafa Dehghan Saei, Juliana French
  *
- * PROGRAMMER:      Vafa Dehghan Saei, Julianna French
+ * PROGRAMMER:      Vafa Dehghan Saei, Juliana French
  *
  * INTERFACE:       void MainWindow::on_SaveButton_clicked()
  *
@@ -774,9 +777,9 @@ void MainWindow::UpdateSenderStatus(QString msg)
  * DATE:              April 16 2018
  *
  *
- * DESIGNER:          Julianna French
+ * DESIGNER:          Juliana French
  *
- * PROGRAMMER:        Julianna French
+ * PROGRAMMER:        Juliana French
  *
  * INTERFACE:         void MainWindow::ShowFilePicker()
  *
