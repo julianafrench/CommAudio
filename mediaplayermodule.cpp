@@ -118,9 +118,9 @@ void MediaPlayerModule::Play()
  * DATE:            April 16 2018
  *
  *
- * DESIGNER:        Julianna French
+ * DESIGNER:        Juliana French
  *
- * PROGRAMMER:      Julianna French
+ * PROGRAMMER:      Juliana French
  *
  * INTERFACE:       void MediaPlayerModule::Pause()
  *
@@ -140,9 +140,9 @@ void MediaPlayerModule::Pause()
  * DATE:            April 16 2018
  *
  *
- * DESIGNER:        Julianna French
+ * DESIGNER:        Juliana French
  *
- * PROGRAMMER:      Julianna French
+ * PROGRAMMER:      Juliana French
  *
  * INTERFACE:       void MediaPlayerModule::Stop()
  *
