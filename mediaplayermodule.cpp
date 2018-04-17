@@ -13,34 +13,34 @@
  *                      void SlowForward()
  *                      void ChangeSongPosition(int)
  *
- * DATE:
+ * DATE:                April 16 2018
  *
- * REVISIONS:
  *
- * DESIGNER:
+ * DESIGNER:            Alex Xia, Juliana French, Luke Lee, Vafa Dehghan Saei
  *
- * PROGRAMMER:
+ * PROGRAMMER:          Alex Xia, Juliana French, Luke Lee, Vafa Dehghan Saei
  *
- * NOTES:
+ * NOTES:               This file has all the controls for the media player related buttons.
+ *                      These include Play, stop, pause, etc.
  *
  ******************************************************************************/
 
 /******************************************************************************
- * FUNCTION:
+ * FUNCTION:            MediaPlayerModule
  *
- * DATE:
+ * DATE:                April 16 2018
  *
- * REVISIONS:
  *
- * DESIGNER:
+ * DESIGNER:            Alex Xia
  *
- * PROGRAMMER:
+ * PROGRAMMER:          Alex Xia
  *
- * INTERFACE:
+ * INTERFACE:           MediaPlayerModule::MediaPlayerModule(QObject *parent) : QObject(parent)
  *
- * RETURNS:
+ * RETURNS:             N/A, constructor
  *
- * NOTES:
+ * NOTES:               This is the constructor of the class which creates an instance of a QMediaPlayer
+ *                      and sets the volume to max.
  *
  ******************************************************************************/
 MediaPlayerModule::MediaPlayerModule(QObject *parent) : QObject(parent)
@@ -50,21 +50,20 @@ MediaPlayerModule::MediaPlayerModule(QObject *parent) : QObject(parent)
 }
 
 /******************************************************************************
- * FUNCTION:
+ * FUNCTION:          ~MediaPlayerModule
  *
- * DATE:
+ * DATE:              April 16 2018
  *
- * REVISIONS:
  *
- * DESIGNER:
+ * DESIGNER:          Alex Xia
  *
- * PROGRAMMER:
+ * PROGRAMMER:        Alex Xia
  *
- * INTERFACE:
+ * INTERFACE:        MediaPlayerModule::~MediaPlayerModule()
  *
- * RETURNS:
+ * RETURNS:          N/A, destructor
  *
- * NOTES:
+ * NOTES:           This is the destructor for the class and will remove the QMediaPlayer instance.
  *
  ******************************************************************************/
 MediaPlayerModule::~MediaPlayerModule()
@@ -73,21 +72,21 @@ MediaPlayerModule::~MediaPlayerModule()
 }
 
 /******************************************************************************
- * FUNCTION:
+ * FUNCTION:        Play
  *
- * DATE:
+ * DATE:            April 16 2018
  *
- * REVISIONS:
  *
- * DESIGNER:
+ * DESIGNER:        Luke Lee, Vafa Dehghan Saei
  *
- * PROGRAMMER:
+ * PROGRAMMER:      Luke Lee, Vafa Dehghan Saei
  *
- * INTERFACE:
+ * INTERFACE:       void MediaPlayerModule::Play()
  *
- * RETURNS:
+ * RETURNS:         void
  *
- * NOTES:
+ * NOTES:           This function is called on click of the play button. It will open the file specified by the user
+ *                  and attempt playback if possible.
  *
  ******************************************************************************/
 void MediaPlayerModule::Play()
@@ -114,21 +113,20 @@ void MediaPlayerModule::Play()
 }
 
 /******************************************************************************
- * FUNCTION:
+ * FUNCTION:        Pause
  *
- * DATE:
+ * DATE:            April 16 2018
  *
- * REVISIONS:
  *
- * DESIGNER:
+ * DESIGNER:        Julianna French
  *
- * PROGRAMMER:
+ * PROGRAMMER:      Julianna French
  *
- * INTERFACE:
+ * INTERFACE:       void MediaPlayerModule::Pause()
  *
- * RETURNS:
+ * RETURNS:         void
  *
- * NOTES:
+ * NOTES:           This function will pause the music.
  *
  ******************************************************************************/
 void MediaPlayerModule::Pause()
@@ -137,21 +135,20 @@ void MediaPlayerModule::Pause()
 }
 
 /******************************************************************************
- * FUNCTION:
+ * FUNCTION:        Stop
  *
- * DATE:
+ * DATE:            April 16 2018
  *
- * REVISIONS:
  *
- * DESIGNER:
+ * DESIGNER:        Julianna French
  *
- * PROGRAMMER:
+ * PROGRAMMER:      Julianna French
  *
- * INTERFACE:
+ * INTERFACE:       void MediaPlayerModule::Stop()
  *
- * RETURNS:
+ * RETURNS:         void
  *
- * NOTES:
+ * NOTES:           This function will pause the music.
  *
  ******************************************************************************/
 void MediaPlayerModule::Stop()
@@ -160,21 +157,20 @@ void MediaPlayerModule::Stop()
 }
 
 /******************************************************************************
- * FUNCTION:
+ * FUNCTION:         FastForward
  *
- * DATE:
+ * DATE:             April 16 2018
  *
- * REVISIONS:
  *
- * DESIGNER:
+ * DESIGNER:        Vafa Dehghan Saei
  *
- * PROGRAMMER:
+ * PROGRAMMER:      Vafa Dehghan Saei
  *
- * INTERFACE:
+ * INTERFACE:       void MediaPlayerModule::FastForward()
  *
- * RETURNS:
+ * RETURNS:         void
  *
- * NOTES:
+ * NOTES:           This function will set the play back speed to be 10% percent faster
  *
  ******************************************************************************/
 void MediaPlayerModule::FastForward()
@@ -184,21 +180,20 @@ void MediaPlayerModule::FastForward()
 }
 
 /******************************************************************************
- * FUNCTION:
+ * FUNCTION:        void MediaPlayerModule::SlowForward()
  *
- * DATE:
+ * DATE:            April 16 2018
  *
- * REVISIONS:
  *
- * DESIGNER:
+ * DESIGNER:        Luke Lee
  *
- * PROGRAMMER:
+ * PROGRAMMER:      Luke Lee
  *
- * INTERFACE:
+ * INTERFACE:       void MediaPlayerModule::SlowForward()
  *
- * RETURNS:
+ * RETURNS:         void
  *
- * NOTES:
+ * NOTES:           This function will set the play back speed to be 10% slower
  *
  ******************************************************************************/
 void MediaPlayerModule::SlowForward()
@@ -208,21 +203,21 @@ void MediaPlayerModule::SlowForward()
 }
 
 /******************************************************************************
- * FUNCTION:
+ * FUNCTION:       ChangeSongPosition
  *
- * DATE:
+ * DATE:           April 16 2018
  *
- * REVISIONS:
  *
- * DESIGNER:
+ * DESIGNER:      Alex Xia
  *
- * PROGRAMMER:
+ * PROGRAMMER:    Alex Xia
  *
- * INTERFACE:
+ * INTERFACE:     void MediaPlayerModule::ChangeSongPosition(int seconds)
+ *                  int second: How many seconds to skip forward
  *
- * RETURNS:
+ * RETURNS:       void
  *
- * NOTES:
+ * NOTES:         This function will change the song position to the given argument.
  *
  ******************************************************************************/
 void MediaPlayerModule::ChangeSongPosition(int seconds)
