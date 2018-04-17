@@ -1,8 +1,66 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+/******************************************************************************
+ * SOURCE FILE: mainwindow.cpp
+ *
+ * PROGRAM:     CommAudio
+ *
+ * FUNCTIONS:
+ *
+ *             MainWindow::MainWindow(QWidget *parent) :
+ *             void MainWindow::UpdateSelectedFile(int row, int column)
+ *             void MainWindow::UpdatePlaylist(QString updatedPlaylist)
+ *             void MainWindow::AlertWrongFileType()
+ *             void MainWindow::UpdateSongProgress(qint64 position)
+ *             void MainWindow::EnableConnect()
+ *             void MainWindow::EnableDisconnect()
+ *             void MainWindow::InitializeSongDuration(qint64 duration_ms)
+ *             void MainWindow::ToggleStreaming(bool streamReady)
+ *             MainWindow::~MainWindow()
+ *             void MainWindow::UpdateSettings()
+ *             QString MainWindow::loadPlaylist()
+ *             void MainWindow::displayPlaylistByRow(int row)
+ *             void MainWindow::displayFileSizeByRow(int row)
+ *             void MainWindow::clearPlaylist()
+ *             void MainWindow::on_actionServer_triggered()
+ *             void MainWindow::on_actionClient_triggered()
+ *             void MainWindow::on_actionConnect_triggered()
+ *             void MainWindow::on_actionDisconnect_triggered()
+ *             void MainWindow::on_SaveButton_clicked()
+ *             void MainWindow::on_actionSettings_triggered()
+ *             void MainWindow::UpdateReceiverStatus(QString msg)
+ *             void MainWindow::UpdateSenderStatus(QString msg)
+ *             void MainWindow::ShowFilePicker()
+ *
+ * DATE:      April 16 2018
+ *
+ * DESIGNER:  Luke Lee, Vafa Dehghan Saei, Alex Xia, Juliana French
+ *
+ * PROGRAMMER:Luke Lee, Vafa Dehghan Saei, Alex Xia, Juliana French
+ *
+ * NOTES:     This file will draw the main window and initialize the main functions
+ *
+ ******************************************************************************/
 bool connected = false;
 
+/******************************************************************************
+ * FUNCTION:    MainWindow
+ *
+ * DATE:        April 16 2018
+ *
+ *
+ * DESIGNER:    Vafa Dehghan Saei, Juliana French, Luke Lee, Alex Xia
+ *
+ * PROGRAMMER:  Vafa Dehghan Saei, Juliana French, Luke Lee, Alex Xia
+ *
+ * INTERFACE:   MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
+ *
+ * RETURNS:     N/A constructor
+ *
+ * NOTES:       This is the constructor of the MainWindow class.
+ *              This constructor will setup the buttons and assign the respective functions to them.
+ *
+ ******************************************************************************/
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -64,6 +122,25 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->actionDisconnect->setEnabled(false);
 }
 
+/******************************************************************************
+ * FUNCTION:      UpdateSelectedFile
+ *
+ * DATE:          April 16 2018
+ *
+ *
+ * DESIGNER:      Alex Xia
+ *
+ * PROGRAMMER:    Alex Xia
+ *
+ * INTERFACE:     void MainWindow::UpdateSelectedFile(int row, int column)
+ *                    int column: The column of the song
+ *                    int row:    The row of the song.
+ *
+ * RETURNS:       void
+ *
+ * NOTES:       This function will get the song the user clicked on in the menu.
+ *
+ ******************************************************************************/
 void MainWindow::UpdateSelectedFile(int row, int column)
 {
     column = 0;
@@ -72,6 +149,24 @@ void MainWindow::UpdateSelectedFile(int row, int column)
     settings->SetFileName(selectedFileName);
 }
 
+/******************************************************************************
+ * FUNCTION:      UpdatePlaylist
+ *
+ * DATE:          April 16 2018
+ *
+ *
+ * DESIGNER:      Alex Xia, Vafa Dehghan Saei
+ *
+ * PROGRAMMER:    Alex Xia, Vafa Dehghan Saei
+ *
+ * INTERFACE:     void MainWindow::UpdatePlaylist(QString updatedPlaylist)
+ *                    QString updatedPlaylist: The update playlist of available songs.
+ *
+ * RETURNS:       void
+ *
+ * NOTES:         This function will iterate through the files on the server and display them for the user.
+ *
+ ******************************************************************************/
 void MainWindow::UpdatePlaylist(QString updatedPlaylist)
 {
     clearPlaylist();
@@ -101,7 +196,23 @@ void MainWindow::UpdatePlaylist(QString updatedPlaylist)
     }
 }
 
-//cant have popups in non gui thread
+/******************************************************************************
+ * FUNCTION:      AlertWrongFileType
+ *
+ * DATE:          April 16 2018
+ *
+ *
+ * DESIGNER:      Luke Lee
+ *
+ * PROGRAMMER:    Luke Lee
+ *
+ * INTERFACE:     void MainWindow::AlertWrongFileType()
+ *
+ * RETURNS:       void
+ *
+ * NOTES:         This function will notify the user if they selected an incorrect file type.
+ *
+ ******************************************************************************/
 void MainWindow::AlertWrongFileType()
 {
     QMessageBox popup;
@@ -110,6 +221,24 @@ void MainWindow::AlertWrongFileType()
     return;
 }
 
+/******************************************************************************
+ * FUNCTION:      UpdateSongProgress
+ *
+ * DATE:          April 16 2018
+ *
+ *
+ * DESIGNER:      Juliana French
+ *
+ * PROGRAMMER:    Juliana French
+ *
+ * INTERFACE:     void MainWindow::UpdateSongProgress(qint64 position)
+ *                    qint64 position: The position of the song
+ *
+ * RETURNS:       void
+ *
+ * NOTES:         This function will update the progress slider and text of the song.
+ *
+ ******************************************************************************/
 void MainWindow::UpdateSongProgress(qint64 position)
 {
     qint64 totalSecondsPlayed = position / 1000;
@@ -121,18 +250,70 @@ void MainWindow::UpdateSongProgress(qint64 position)
     ui->SongProgressSlider->setValue(totalSecondsPlayed);
 }
 
+/******************************************************************************
+ * FUNCTION:        EnableConnect
+ *
+ * DATE:            April 16 2018
+ *
+ *
+ * DESIGNER:        Alex Xia
+ *
+ * PROGRAMMER:      Alex Xia
+ *
+ * INTERFACE:       void MainWindow::EnableConnect()
+ *
+ * RETURNS:         void
+ *
+ * NOTES:           This connection will enable the connect action and disable the disconnect action
+ *
+ ******************************************************************************/
 void MainWindow::EnableConnect()
 {
     ui->actionConnect->setEnabled(true);
     ui->actionDisconnect->setEnabled(false);
 }
 
+/******************************************************************************
+ * FUNCTION:        EnableDisconnect
+ *
+ * DATE:            April 16 2018
+ *
+ *
+ * DESIGNER:        Alex Xia
+ *
+ * PROGRAMMER:      Alex Xia
+ *
+ * INTERFACE:       void MainWindow::EnableDisconnect()
+ *
+ * RETURNS:         void
+ *
+ * NOTES:           This connection will disable the connect action and enable the disconnect action
+ *
+ ******************************************************************************/
 void MainWindow::EnableDisconnect()
 {
     ui->actionDisconnect->setEnabled(true);
     ui->actionConnect->setEnabled(false);
 }
 
+/******************************************************************************
+ * FUNCTION:        InitializeSongDuration
+ *
+ * DATE:            April 16 2018
+ *
+ *
+ * DESIGNER:        Vafa Dehghan Saei
+ *
+ * PROGRAMMER:      Vafa Dehghan Saei
+ *
+ * INTERFACE:       void MainWindow::InitializeSongDuration(qint64 duration_ms)
+ *                      qint64 duration_ms: The duration of the song
+ *
+ * RETURNS:         void
+ *
+ * NOTES:           This function will initialize the song slider and text to 0.
+ *
+ ******************************************************************************/
 void MainWindow::InitializeSongDuration(qint64 duration_ms)
 {
     qint64 totalSeconds = duration_ms / 1000;
@@ -145,6 +326,24 @@ void MainWindow::InitializeSongDuration(qint64 duration_ms)
     ui->SongProgressLabel->setText("00:00");
 }
 
+/******************************************************************************
+ * FUNCTION:          ToggleStreaming
+ *
+ * DATE:              April 16 2018
+ *
+ *
+ * DESIGNER:          Juliana French
+ *
+ * PROGRAMMER:        Juliana French
+ *
+ * INTERFACE:         void MainWindow::ToggleStreaming(bool streamReady)
+ *                        bool streamReady: A boolean that represent if the stream is ready or not
+ *
+ * RETURNS:           void
+ *
+ * NOTES:             This function will update the UI to display if the audio is streaming or not
+ *
+ ******************************************************************************/
 void MainWindow::ToggleStreaming(bool streamReady)
 {
     if (streamReady) //receiver set up, unconnected, allow 2 connect
@@ -162,6 +361,23 @@ void MainWindow::ToggleStreaming(bool streamReady)
     }
 }
 
+/******************************************************************************
+ * FUNCTION:          ~MainWindow
+ *
+ * DATE:              April 16 2018
+ *
+ *
+ * DESIGNER:          Luke Lee
+ *
+ * PROGRAMMER:        Luke Lee
+ *
+ * INTERFACE:         MainWindow::~MainWindow()
+ *
+ * RETURNS:           N/A, destructor
+ *
+ * NOTES:             This function will quit the streaming thread and delete the ui and settings.
+ *
+ ******************************************************************************/
 MainWindow::~MainWindow()
 {
     streamingThread.quit();
@@ -171,6 +387,24 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+/******************************************************************************
+ * FUNCTION:          UpdateSettings
+ *
+ * DATE:              April 16 2018
+ *
+ *
+ * DESIGNER:         Alex Xia
+ *
+ * PROGRAMMER:       Alex Xia
+ *
+ * INTERFACE:        void MainWindow::UpdateSettings()
+ *
+ * RETURNS:          void
+ *
+ * NOTES:            This function will check what type the Host is, and what mode the program is running in.
+ *                   It will then update the UI accordingly.
+ *
+ ******************************************************************************/
 void MainWindow::UpdateSettings()
 {
     if(settings->GetHostMode() == "Client")
@@ -205,6 +439,23 @@ void MainWindow::UpdateSettings()
     }
 }
 
+/******************************************************************************
+ * FUNCTION:          loadPlaylist
+ *
+ * DATE:              April 16 2018
+ *
+ *
+ * DESIGNER:          Alex Xia, Luke Lee
+ *
+ * PROGRAMMER:        Alex Xia, Luke Lee
+ *
+ * INTERFACE:         QString MainWindow::loadPlaylist()
+ *
+ * RETURNS:           QString: The name of the file and the size as a string
+ *
+ * NOTES:             This function will update the menu with the songs on the server.
+ *
+ ******************************************************************************/
 QString MainWindow::loadPlaylist()
 {
     clearPlaylist();
@@ -242,6 +493,24 @@ QString MainWindow::loadPlaylist()
     return fileStr;
 }
 
+/******************************************************************************
+ * FUNCTION:          displayPlaylistByRow
+ *
+ * DATE:              April 16 2018
+ *
+ *
+ * DESIGNER:          Vafa Dehghan Saei
+ *
+ * PROGRAMMER:        Vafa Dehghan Saei
+ *
+ * INTERFACE:         void MainWindow::displayPlaylistByRow(int row)
+ *                        int row: The row to add the song
+ *
+ * RETURNS:           void
+ *
+ * NOTES:             This function will add a new song to the table at the given row.
+ *
+ ******************************************************************************/
 void MainWindow::displayPlaylistByRow(int row)
 {
     QTableWidgetItem *fName = new QTableWidgetItem;
@@ -251,6 +520,24 @@ void MainWindow::displayPlaylistByRow(int row)
     ui->tableWidget->setItem(row, 0, fName);
 }
 
+/******************************************************************************
+ * FUNCTION:          displayFileSizeByRow
+ *
+ * DATE:              April 16 2018
+ *
+ *
+ * DESIGNER:          Juliana French
+ *
+ * PROGRAMMER:        Juliana French
+ *
+ * INTERFACE:         void MainWindow::displayFileSizeByRow(int row)
+ *                          int row: the row to add the file size.
+ *
+ * RETURNS:           void
+ *
+ * NOTES:             This function will add the songs file size on the given row.
+ *
+ ******************************************************************************/
 void MainWindow::displayFileSizeByRow(int row)
 {
     QTableWidgetItem *fSize = new QTableWidgetItem;
@@ -259,6 +546,23 @@ void MainWindow::displayFileSizeByRow(int row)
     ui->tableWidget->setItem(row, 1, fSize);
 }
 
+/******************************************************************************
+ * FUNCTION:        clearPlaylist
+ *
+ * DATE:            April 16 2018
+ *
+ *
+ * DESIGNER:        Vafa Dehghan Saei
+ *
+ * PROGRAMMER:      Vafa Dehghan Saei
+ *
+ * INTERFACE:       void MainWindow::clearPlaylist()
+ *
+ * RETURNS:         void
+ *
+ * NOTES:           This function will clear the table of all songs.
+ *
+ ******************************************************************************/
 void MainWindow::clearPlaylist()
 {
     ui->tableWidget->setRowCount(0);
@@ -267,11 +571,73 @@ void MainWindow::clearPlaylist()
     ui->tableWidget->setHorizontalHeaderLabels(QStringList() << "File Name" << "File Size (B)");
 }
 
+
+/******************************************************************************
+ * FUNCTION:        on_actionServer_triggered
+ *
+ * DATE:            April 16 2018
+ *
+ *
+ * DESIGNER:        Juliana French.
+ *
+ * PROGRAMMER:      Juliana French
+ *
+ * INTERFACE:       void MainWindow::on_actionServer_triggered()
+ *
+ * RETURNS:         void
+ *
+ * NOTES:           This function will set the hostType to server.
+ *
+ ******************************************************************************/
+void MainWindow::on_actionServer_triggered()
+{
+    hostType = SERVER;
+}
+
+/******************************************************************************
+ * FUNCTION:        on_actionClient_triggered
+ *
+ * DATE:            April 16 2018
+ *
+ *
+ * DESIGNER:        Juliana French.
+ *
+ * PROGRAMMER:      Juliana French
+ *
+ * INTERFACE:       void MainWindow::on_actionClient_triggered()
+ *
+ * RETURNS:         void
+ *
+ * NOTES:           This function will set the hostType to client.
+ *
+ ******************************************************************************/
+void MainWindow::on_actionClient_triggered()
+{
+    hostType = CLIENT;
+}
+
+/******************************************************************************
+ * FUNCTION:        on_actionConnect_triggered
+ *
+ * DATE:            April 16 2018
+ *
+ *
+ * DESIGNER:        Luke Lee
+ *
+ * PROGRAMMER:      Luke Lee
+ *
+ * INTERFACE:       void MainWindow::on_actionConnect_triggered()
+ *
+ * RETURNS:         void
+ *
+ * NOTES:           This function will check the host type and load the playlist if server, and connect the TransferModule.
+ *
+ ******************************************************************************/
 void MainWindow::on_actionConnect_triggered()
 {
     if (hostType == SERVER)
     {
-        QString playlistLine = loadPlaylist();        
+        QString playlistLine = loadPlaylist();
         transferer->Connect(playlistLine);
     }
     else if (hostType == CLIENT)
@@ -280,11 +646,45 @@ void MainWindow::on_actionConnect_triggered()
     }
 }
 
+/******************************************************************************
+ * FUNCTION:        on_actionDisconnect_triggered
+ *
+ * DATE:            April 16 2018
+ *
+ *
+ * DESIGNER:        Luke Lee
+ *
+ * PROGRAMMER:      Luke Lee
+ *
+ * INTERFACE:       void MainWindow::on_actionDisconnect_triggered()
+ *
+ * RETURNS:         void
+ *
+ * NOTES:           This function will disconnect the TransferModule
+ *
+ ******************************************************************************/
 void MainWindow::on_actionDisconnect_triggered()
 {
     transferer->Disconnect();
 }
 
+/******************************************************************************
+ * FUNCTION:        on_SaveButton_clicked
+ *
+ * DATE:            April 16 2018
+ *
+ *
+ * DESIGNER:        Vafa Dehghan Saei, Juliana French
+ *
+ * PROGRAMMER:      Vafa Dehghan Saei, Juliana French
+ *
+ * INTERFACE:       void MainWindow::on_SaveButton_clicked()
+ *
+ * RETURNS:         void
+ *
+ * NOTES:           This function will save the song when the button is clicked.
+ *
+ ******************************************************************************/
 void MainWindow::on_SaveButton_clicked()
 {
     if (hostType == CLIENT)
@@ -303,21 +703,91 @@ void MainWindow::on_SaveButton_clicked()
     }
 }
 
+/******************************************************************************
+ * FUNCTION:       on_actionSettings_triggered
+ *
+ * DATE:           April 16 2018
+ *
+ *
+ * DESIGNER:      Alex Xia
+ *
+ * PROGRAMMER:    Alex Xia
+ *
+ * INTERFACE:     void MainWindow::on_actionSettings_triggered()
+ *
+ * RETURNS:       void
+ *
+ * NOTES:         This function will execute the settings window
+ *
+ ******************************************************************************/
 void MainWindow::on_actionSettings_triggered()
 {
     settings->exec();
 }
 
+/******************************************************************************
+ * FUNCTION:        UpdateReceiverStatus
+ *
+ * DATE:            April 16 2018
+ *
+ *
+ * DESIGNER:      Luke Lee
+ *
+ * PROGRAMMER:    Luke Lee
+ *
+ * INTERFACE:    void MainWindow::UpdateSenderStatus(QString msg)
+ *                  QString msg: The string to update the receiver status to
+ *
+ * RETURNS:       void
+ *
+ * NOTES:       This function will update the receiver status text.
+ *
+ ******************************************************************************/
 void MainWindow::UpdateReceiverStatus(QString msg)
 {
     ui->ReceiverStatusLabel->setText(msg);
 }
 
+/******************************************************************************
+ * FUNCTION:        UpdateSenderStatus
+ *
+ * DATE:            April 16 2018
+ *
+ *
+ * DESIGNER:      Luke Lee
+ *
+ * PROGRAMMER:    Luke Lee
+ *
+ * INTERFACE:    void MainWindow::UpdateSenderStatus(QString msg)
+ *                  QString msg: The string to update the server status to
+ *
+ * RETURNS:       void
+ *
+ * NOTES:       This function will update the server status text.
+ *
+ ******************************************************************************/
 void MainWindow::UpdateSenderStatus(QString msg)
 {
     ui->SenderStatusLabel->setText(msg);
 }
 
+/******************************************************************************
+ * FUNCTION:          ShowFilePicker
+ *
+ * DATE:              April 16 2018
+ *
+ *
+ * DESIGNER:          Juliana French
+ *
+ * PROGRAMMER:        Juliana French
+ *
+ * INTERFACE:         void MainWindow::ShowFilePicker()
+ *
+ * RETURNS:           void
+ *
+ * NOTES:             This function will display the file picker and allow the user to choose an mp3 or wav file.
+ *
+ ******************************************************************************/
 void MainWindow::ShowFilePicker()
 {
     QString newFileName = QFileDialog::getOpenFileName((QWidget*)this->parent(),
